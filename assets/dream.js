@@ -1,6 +1,6 @@
 const dreamTheme={...themeDefaults,paper:'#76708e',desk:'#27252e',ink:'#f4efdc',muted:'#ddd7cb',tag:'#deddbb',tagInk:'#292735',titleSize:106,subSize:15,captionSize:11,folioSize:13,titleX:68,titleY:62,subX:73,subY:202,captionX:745,captionY:100,folioX:550,folioY:725,showLine:false,dream:true,grain:8};
 let priorBook=null,priorPi=0,priorDirty=false;
-function setDream(){book.theme={...dreamTheme};changed();render()}
+function setDream(){page().theme={...dreamTheme};changed();render()}
 function demo(){if(dirty&&!confirm('当前有未保存修改。先保留在内存中，再打开示例？建议先导出备份。'))return;priorBook=book;priorPi=pi;priorDirty=dirty;book={version:1,theme:{...dreamTheme},pages:[{id:uid(),birds:structuredClone(dreamBirds)}]};pi=0;selected=null;dirty=false;preview=true;document.body.classList.add('preview');$('#mode').textContent='编辑这个示例';render();toast('灰紫示例 · 点击“编辑这个示例”即可调整')}
 const demoBtn=document.createElement('button');demoBtn.textContent='查看灰紫示例';demoBtn.onclick=demo;$('.actions').prepend(demoBtn);
 const applyBtn=document.createElement('button');applyBtn.className='wide';applyBtn.textContent='应用灰紫主题到当前目录';applyBtn.onclick=setDream;$('#stylePanel').before(applyBtn);
