@@ -13,7 +13,7 @@
     'body.preview{overflow:hidden;padding-bottom:0!important}',
     'body.preview .workhead{display:none!important}',
     'body.preview .work{max-width:none!important;padding:0!important}',
-    'body.preview #frame{width:min(calc(100vw - 40px),calc((100vh - 124px)*1.5789))!important;margin:20px auto}',
+    'body.preview #frame{width:min(calc(100vw - 40px),calc((100vh - 170px)*1.5789))!important;margin:20px auto}',
     'body.preview .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:58px;margin:0!important;z-index:20}'
   ].join('');
   document.head.append(st);
