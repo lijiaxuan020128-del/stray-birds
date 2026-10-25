@@ -35,7 +35,7 @@
   function open(url) {
     const target = new URL(url, location.href);
     if (!['http:', 'https:'].includes(target.protocol)) { toast('效果链接格式不正确'); return; }
-    if (target.hostname === 'editor.p5js.org') { toast('请填写独立效果页面地址；p5.js 分享链接仍会显示分享界面'); return; }
+    if (target.hostname === 'editor.p5js.org') { target.href = target.href.replace('/full/','/embed/'); }
     previousFocus = document.activeElement;
     previousOverflow = document.body.style.overflow;
     frame.src = target.href;
@@ -46,7 +46,7 @@
   const originalActivate = activate;
   activate = function(b, part) {
     if (!preview) return originalActivate(b, part);
-    if (b.name.includes('苍鹭')) return open('birds/heron/');
+    if (b.name.includes('苍鹭')) return open('https://editor.p5js.org/lijiaxuan020128/full/F9iWb8HVL');
     if (b.url) return open(b.url);
     toast('这只鸟的效果链接还没有填写');
   };
