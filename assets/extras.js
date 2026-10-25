@@ -1,22 +1,57 @@
-// 预览模式等比完整显示（纯 CSS 定宽，原 ResizeObserver 自动按宽度缩放）
+// 预览模式：按真实可用空间等比缩放（实测顶栏/栏目条高度，不猜参数）
 (function(){
   'use strict';
+  let fitApplied=false;
+  const prevResize=resize;
   const prevRender=render;
   render=function(){
     prevRender();
     const t=theme();
     if(t&&t.dream){ document.body.style.background=preview?(t.paper||'#76708e'):(t.desk||'#27252e'); }
+    if(preview){fitPreview();}
+    else if(fitApplied){                      // 离开预览：清除预览尺寸，恢复编辑区
+      const f=document.getElementById('frame');
+      if(f){f.style.width='';f.style.margin='';}
+      fitApplied=false;
+      prevResize();
+    }
   };
+
+  function fitPreview(){
+    if(!preview)return;
+    const f=document.getElementById('frame');
+    if(!f)return;
+    const top=document.querySelector('.top');
+    const bar=document.querySelector('.sectionNav');
+    const topH=top?top.offsetHeight:84;
+    const barH=bar?bar.offsetHeight:46;
+    const availH=window.innerHeight-topH-barH-40;
+    const availW=window.innerWidth-40;
+    if(availH<200||availW<200)return;
+    const w=Math.max(320,Math.min(availW,availH*1200/760));
+    f.style.width=w+'px';
+    f.style.margin='20px auto';
+    fitApplied=true;
+    prevResize();
+  }
+
   const st=document.createElement('style');
   st.textContent=[
     'html{overflow-x:hidden}',
     'body.preview{overflow:hidden;padding-bottom:0!important}',
-    'body.preview .workhead{display:none!important}',
     'body.preview .work{max-width:none!important;padding:0!important}',
-    'body.preview #frame{width:min(calc(100vw - 40px),calc((100vh - 170px)*1.5789))!important;margin:20px auto}',
+    'body.preview .workhead{display:none!important}',
     'body.preview .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:58px;margin:0!important;z-index:20}'
   ].join('');
   document.head.append(st);
+
+  document.addEventListener('click',e=>{
+    if(e.target&&e.target.id==='mode'){
+      [0,80,250,600].forEach(t=>setTimeout(fitPreview,t));
+    }
+  },true);
+  window.addEventListener('resize',()=>{if(preview)fitPreview();});
+  setTimeout(fitPreview,800);
 })();
 
 // ---- 撤销 / 重做（快照式，Ctrl+Z / Ctrl+Y）----
