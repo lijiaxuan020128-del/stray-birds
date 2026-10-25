@@ -46,7 +46,7 @@
   const originalActivate = activate;
   activate = function(b, part) {
     if (!preview) return originalActivate(b, part);
-    if (b.name.includes('苍鹭')) return open('https://editor.p5js.org/lijiaxuan020128/full/F9iWb8HVL');
+    if (b.name.includes('苍鹭')) return open('birds/heron/');
     if (b.url) return open(b.url);
     toast('这只鸟的效果链接还没有填写');
   };
