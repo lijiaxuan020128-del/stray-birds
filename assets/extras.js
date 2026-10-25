@@ -1,29 +1,22 @@
-// 预览模式铺满窗口：画布按窗口宽度缩放（与原站行为一致）
+// 预览模式等比完整显示（纯 CSS 定宽，原 ResizeObserver 自动按宽度缩放）
 (function(){
   'use strict';
-  const prevResize=resize;
-  resize=function(){
-    if(preview){
-      scale=window.innerWidth/1200;
-      const f=$('#frame');
-      f.style.width=window.innerWidth+'px';
-      f.style.height=760*scale+'px';
-      $('#canvas').style.transform='scale('+scale+')';
-      return;
-    }
-    prevResize();
-  };
   const prevRender=render;
   render=function(){
     prevRender();
     const t=theme();
-    if(t&&t.dream){ document.body.style.background=(t.desk||'#27252e'); }
+    if(t&&t.dream){ document.body.style.background=preview?(t.paper||'#76708e'):(t.desk||'#27252e'); }
   };
   const st=document.createElement('style');
-  st.textContent='.preview .work{max-width:none!important;padding:0!important}html{overflow-x:hidden}';
+  st.textContent=[
+    'html{overflow-x:hidden}',
+    'body.preview{overflow:hidden;padding-bottom:0!important}',
+    'body.preview .workhead{display:none!important}',
+    'body.preview .work{max-width:none!important;padding:0!important}',
+    'body.preview #frame{width:min(calc(100vw - 40px),calc((100vh - 124px)*1.5789))!important;margin:20px auto}',
+    'body.preview .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:58px;margin:0!important;z-index:20}'
+  ].join('');
   document.head.append(st);
-  document.addEventListener('click',e=>{if(e.target&&e.target.id==='mode')setTimeout(()=>resize(),60);});
-  window.addEventListener('resize',()=>{if(document.body.classList.contains('preview'))resize();});
 })();
 
 // ---- 撤销 / 重做（快照式，Ctrl+Z / Ctrl+Y）----
