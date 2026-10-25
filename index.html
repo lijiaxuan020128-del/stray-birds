@@ -10,9 +10,9 @@
 <link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet">
 <style>
   :root{
-    --bg:#eae9e2;
-    --ink:#293b34;
-    --cream:#faf9f2;
+    --bg:#8a87a3;
+    --ink:#16161f;
+    --cream:#f2ecdd;
     --accent:#6f8667;
     --green:#3fbf6f;
     --hair:rgba(41,59,52,.25);
@@ -25,8 +25,12 @@
   html,body{height:100%}
   body{
     background-color:var(--bg);
-    background-image:radial-gradient(ellipse at 80% 10%,rgba(255,254,251,.9),rgba(247,245,235,0) 60%);
-    color:var(--ink);
+    background-image:
+      radial-gradient(rgba(242,236,221,.30) 1px, transparent 1.6px),
+      radial-gradient(rgba(242,236,221,.15) 1px, transparent 1.6px);
+    background-size:210px 190px, 160px 230px;
+    background-position:24px 40px, 90px 110px;
+    color:var(--cream);
     font-family:var(--font-ui);
     overflow:hidden;
     -webkit-user-select:none; user-select:none;
@@ -42,21 +46,31 @@
   body.noframe #frame{display:none}
 
   /* ---------- 大标题：画板选中框风格 ---------- */
-  #masthead{position:fixed;top:38px;left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;text-align:center}
+  #masthead{position:fixed;top:9vh;left:7vw;z-index:6;pointer-events:none;text-align:left}
   #mastTitle{
     font-family:var(--font-display);
-    font-size:clamp(34px,4.6vw,58px);
-    letter-spacing:.3em;text-indent:.3em;
-    color:var(--ink);line-height:1.15;white-space:nowrap;
+    font-size:clamp(60px,9vw,124px);
+    letter-spacing:.18em;
+    color:var(--cream);line-height:1.05;white-space:nowrap;
     font-weight:400;
+  }
+  #mastKicker{
+    font-size:clamp(13px,1.3vw,17px);letter-spacing:.6em;
+    color:var(--cream);opacity:.85;margin-top:18px;
   }
   #mastSub{
     font-family:var(--font-ui);
-    font-size:clamp(11px,1.2vw,14px);
-    letter-spacing:.45em;text-indent:.45em;
-    color:var(--ink);opacity:.55;margin-top:10px;white-space:nowrap;
+    font-size:clamp(12px,1.3vw,15px);
+    letter-spacing:.3em;
+    color:var(--cream);opacity:.75;margin-top:12px;white-space:nowrap;
   }
-  #mastFrame{position:absolute;inset:-16px -26px;border:1px solid var(--accent)}
+  #mastCol{position:fixed;top:13vh;right:9vw;z-index:6;text-align:left;color:var(--cream);pointer-events:none}
+  #mastCol .c1{font-family:var(--font-display);font-size:clamp(13px,1.4vw,18px);letter-spacing:.32em;white-space:nowrap}
+  #mastCol .c2{font-size:clamp(16px,1.8vw,24px);letter-spacing:.2em;margin-top:3vh;white-space:nowrap}
+  #mastCol .c3{font-size:clamp(10px,1vw,13px);letter-spacing:.3em;opacity:.7;margin-top:2.2vh;white-space:nowrap}
+  .spark{position:fixed;color:var(--cream);opacity:.85;z-index:6;pointer-events:none}
+  #mastFrame{position:absolute;inset:-16px -26px;border:1px solid var(--accent);opacity:0;transition:opacity .25s}
+  body.editing #mastFrame{opacity:1}
   #mastFrame i{position:absolute;width:7px;height:7px;background:#fff;border:1px solid var(--accent)}
   #mastFrame i:nth-child(1){top:-4px;left:-4px}
   #mastFrame i:nth-child(2){top:-4px;right:-4px}
@@ -68,9 +82,9 @@
   }
   #mastChip{top:-9px;right:-64px}
   #mastTag{bottom:-9px;right:22px}
-  #ruler .labels span.cur{color:var(--ink);border-bottom:1.5px solid var(--accent);padding-bottom:1px}
+  #ruler .labels span.cur{color:var(--cream);border-bottom:1.5px solid var(--accent);padding-bottom:1px}
   body:not(.editing) #ruler .labels span{cursor:pointer}
-  body:not(.editing) #ruler .labels span:hover{color:var(--ink)}
+  body:not(.editing) #ruler .labels span:hover{color:var(--cream)}
   body.editing #masthead{z-index:14}
   body.editing #mastTitle{pointer-events:auto;cursor:text;user-select:text;-webkit-user-select:text;border-radius:4px}
   body.editing #mastTitle:hover{background:rgba(51,78,64,.10)}
@@ -81,11 +95,11 @@
 
   /* ---------- 页眉徽章 / 右上模式钮 / 提示 ---------- */
   #brand{position:fixed;top:26px;left:32px;z-index:20;display:flex;align-items:center;gap:14px}
-  #brand .word{color:var(--ink);font-weight:700;letter-spacing:.24em;font-size:14px}
+  #brand .word{color:var(--cream);font-weight:700;letter-spacing:.24em;font-size:14px}
   #pill{
     display:flex;align-items:center;gap:7px;
-    border:1px solid rgba(41,59,52,.4);border-radius:999px;
-    color:var(--ink);font-size:12px;letter-spacing:.06em;padding:5px 13px;
+    border:1px solid rgba(242,236,221,.5);border-radius:999px;
+    color:var(--cream);font-size:12px;letter-spacing:.06em;padding:5px 13px;
   }
   #pill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
   #modeBtn{
@@ -94,16 +108,16 @@
     font-size:12px;letter-spacing:.28em;text-indent:.28em;padding:10px 18px;border-radius:3px;
   }
   #modeBtn:hover{background:#293b34}
-  #hint{position:fixed;bottom:66px;right:36px;font-size:calc(12px*var(--fscale));letter-spacing:.28em;color:rgba(41,59,52,.55);z-index:6}
+  #hint{position:fixed;bottom:66px;right:36px;font-size:calc(12px*var(--fscale));letter-spacing:.28em;color:rgba(242,236,221,.75);z-index:6}
 
   /* ---------- 底部刻度尺 ---------- */
-  #ruler{position:fixed;left:0;right:0;bottom:0;height:34px;z-index:6;color:rgba(41,59,52,.55);pointer-events:none}
+  #ruler{position:fixed;left:0;right:0;bottom:0;height:34px;z-index:6;color:rgba(242,236,221,.75);pointer-events:none}
   #ruler .labels{display:flex;justify-content:space-between;padding:0 60px 5px;font-size:11px;letter-spacing:.3em}
   #ruler .labels span{pointer-events:auto;padding:2px 4px;border-radius:2px;border-bottom:1px dashed transparent}
   body.editing #ruler .labels span{cursor:text;user-select:text;-webkit-user-select:text}
-  body.editing #ruler .labels span:hover{border-bottom-color:rgba(41,59,52,.45)}
+  body.editing #ruler .labels span:hover{border-bottom-color:rgba(242,236,221,.45)}
   #ruler .labels span:focus{outline:none;background:#334e40;color:#faf9f2}
-  #ruler .ticks{height:10px;background:repeating-linear-gradient(90deg,rgba(41,59,52,.35) 0 1px,transparent 1px 9px)}
+  #ruler .ticks{height:10px;background:repeating-linear-gradient(90deg,rgba(242,236,221,.4) 0 1px,transparent 1px 9px)}
 
   /* ---------- 元素 ---------- */
   #stage{position:fixed;inset:0;z-index:8}
@@ -129,9 +143,10 @@
   }
   .tag.lit{outline:1.5px solid var(--accent);outline-offset:2px;box-shadow:0 6px 14px rgba(41,59,52,.3)}
   .tag{
-    display:inline-block;white-space:nowrap;letter-spacing:.14em;
-    padding:.32em .9em .36em;border-radius:3px;cursor:pointer;
-    box-shadow:2px 3px 0 rgba(41,59,52,.18);
+    display:inline-block;white-space:nowrap;letter-spacing:.2em;
+    padding:.38em 1em .42em;border-radius:2px;cursor:pointer;
+    font-family:var(--font-display);
+    background:#f2ecd8;box-shadow:3px 4px 10px rgba(22,22,31,.28);
   }
   .tag::before{content:"";display:inline-block;width:7px;height:7px;background:var(--blue);margin-right:.65em;border-radius:1px}
   .freetext{white-space:pre-wrap;cursor:pointer;line-height:1.6}
@@ -157,7 +172,7 @@
   #dock .pgnum{color:var(--ink);font-size:12px;letter-spacing:.1em;padding:0 4px}
   #editTip{
     position:fixed;bottom:44px;left:32px;z-index:20;display:none;
-    font-size:11.5px;letter-spacing:.12em;color:rgba(41,59,52,.55);line-height:2;
+    font-size:11.5px;letter-spacing:.12em;color:rgba(242,236,221,.6);line-height:2;
   }
   body.editing #editTip{display:block}
   #pageNav{
@@ -242,11 +257,21 @@
   <!-- 大标题：选中框 -->
   <div id="masthead">
     <div id="mastFrame"><i></i><i></i><i></i><i></i></div>
-    <div id="mastTitle">Stray Birds</div>
-    <div id="mastSub">飞鸟集</div>
+    <div id="mastTitle">飞鸟集</div>
+    <div id="mastKicker">目 录</div>
+    <div id="mastSub">一页一栖息，一鸟一世界。</div>
     <div class="chip" id="mastChip">P.01 / 01</div>
     <div class="chip" id="mastTag">目录 INDEX</div>
   </div>
+
+  <!-- 右侧文案列 -->
+  <div id="mastCol">
+    <div class="c1">BIRDS / A COLLECTION OF MOMENTS</div>
+    <div class="c2">一页一栖息，一鸟一世界。</div>
+    <div class="c3">A FIELD GUIDE TO MOVEMENT</div>
+  </div>
+  <span class="spark" style="top:26vh;right:26vw;font-size:22px">✧</span>
+  <span class="spark" style="top:52vh;right:13vw;font-size:15px">✦</span>
 
   <!-- 页眉 -->
   <div id="brand">
@@ -305,7 +330,8 @@
     <div class="group">
       <label>标题字体</label>
       <select data-s="titleFont">
-        <option value="georgia">Georgia 衬线（默认）</option>
+        <option value="song">宋体衬线（默认）</option>
+        <option value="georgia">Georgia 衬线</option>
         <option value="nesil">Melodrama 衬线</option>
         <option value="song">宋体衬线</option>
         <option value="wenkai">霞鹜文楷（联网）</option>
@@ -415,6 +441,7 @@ const FONT_MAP = {
   fang:'"FangSong","STFangsong","仿宋",serif'
 };
 const FONT_TITLE = {
+  song:'"Didot","Bodoni MT","Songti SC","STSong","SimSun",serif',
   georgia:'"Georgia","Times New Roman","Songti SC","STSong","SimSun",serif',
   nesil:'"Melodrama","Mighty Ditey NF","Bodoni MT","Didot","Songti SC",serif',
   song:'"Didot","Bodoni MT","Songti SC","STSong","SimSun",serif',
@@ -441,16 +468,23 @@ function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function defaultState(){
   return {
     styles:{
-      bg:"#eae9e2", ink:"#293b34", cream:"#faf9f2", accent:"#6f8667",
-      fontKey:"hei", fontScale:1, titleFont:"georgia", titleFontCustom:"",
-      frame:false, frameColor:"#293b34",
-      pill:"FIELD NOTES", hint:"一页一栖息，一鸟一世界。",
+      bg:"#8a87a3", ink:"#16161f", cream:"#f2ecdd", accent:"#6f8667",
+      fontKey:"hei", fontScale:1, titleFont:"song", titleFontCustom:"",
+      frame:false, frameColor:"#f2ecdd",
+      pill:"FIELD NOTES", hint:"",
       bgImage:"", bgDim:0.25,
       particles:true, particleSpeed:1,
       ruler:["目 录","INDEX","SPECIES","PAGES","飞 鸟 集"]
     },
-    pages:[{title:"飞鸟集",sub:"BIRDS · A COLLECTION OF MOMENTS",catIdx:-1}],
-    items:[]
+    pages:[{title:"飞鸟集",sub:"",catIdx:-1}],
+    items:[
+      {id:"b1",page:0,type:"bird",src:"贴图/bird2.png",name:"斑头雁",preview:"",previewOn:false,href:"pages/斑头雁.html",x:5,y:40,w:34,rot:0,z:1,ratio:1417/1110},
+      {id:"b2",page:0,type:"bird",src:"贴图/bird3.png",name:"戴胜",preview:"",previewOn:false,href:"pages/戴胜.html",x:42,y:42,w:18,rot:0,z:2,ratio:1352/1163},
+      {id:"b3",page:0,type:"bird",src:"贴图/bird1.png",name:"白鹡鸰",preview:"",previewOn:false,href:"pages/白鹡鸰.html",x:65,y:22,w:16,rot:0,z:3,ratio:1345/1170},
+      {id:"t1",page:0,type:"tag",follow:"b1",text:"",num:2,suffix:"斑头雁",x:17,y:87,rot:0,z:5,fontSize:16,bg:"#f2ecd8",color:"#334e40",borderColor:"",href:"pages/斑头雁.html"},
+      {id:"t2",page:0,type:"tag",follow:"b2",text:"",num:3,suffix:"戴胜",x:47,y:83,rot:0,z:5,fontSize:16,bg:"#f2ecd8",color:"#334e40",borderColor:"",href:"pages/戴胜.html"},
+      {id:"t3",page:0,type:"tag",follow:"b3",text:"",num:1,suffix:"白鹡鸰",x:69,y:60,rot:0,z:5,fontSize:16,bg:"#f2ecd8",color:"#334e40",borderColor:"",href:"pages/白鹡鸰.html"}
+    ]
   };
 }
 function pageTags(s,pi){return s.items.filter(i=>i.type==="tag"&&i.follow&&i.page===pi)}
@@ -502,6 +536,14 @@ function load(){
           }
         });
         // 一次性标题升级（每台浏览器只跑一次，重跑也不会误伤：只改标题含"飞鸟集"的页）
+        if(!localStorage.getItem(KEY+"_up6")){
+          if(s.styles.bg==="#eae9e2"||s.styles.bg==="#8f90b2"){
+            s.styles.bg="#8a87a3"; s.styles.ink="#16161f"; s.styles.cream="#f2ecdd";
+            s.styles.accent="#6f8667"; s.styles.frameColor="#f2ecdd"; s.styles.pill="FIELD NOTES";
+            s.styles.titleFont="song";
+          }
+          localStorage.setItem(KEY+"_up6","1");
+        }
         if(!localStorage.getItem(KEY+"_up5")){
           s.pages.forEach(p=>{
             if(p.title==="Stray Birds"&&p.sub==="飞鸟集"){p.title="飞鸟集";p.sub="BIRDS · A COLLECTION OF MOMENTS";}
@@ -1181,12 +1223,12 @@ function tickParticles(t){
   pctx.clearRect(0,0,pcv.width,pcv.height);
   if(S && S.styles.particles!==false){
     const sp=S.styles.particleSpeed||1;
-    const col=S.styles.ink||"#293b34";
+    const col=S.styles.cream||"#f2ecdd";
     for(const p of P){
       p.y-=p.s*sp; p.x+=Math.sin(t/2600+p.ph)*0.16*sp+p.dx;
       if(p.y<-4){p.y=pcv.height+4;p.x=Math.random()*pcv.width;}
       if(p.x<-4)p.x=pcv.width+4; if(p.x>pcv.width+4)p.x=-4;
-      pctx.globalAlpha=p.o*0.45*(0.65+0.35*Math.sin(t/900+p.ph));
+      pctx.globalAlpha=p.o*0.8*(0.65+0.35*Math.sin(t/900+p.ph));
       pctx.fillStyle=col;
       pctx.beginPath();pctx.arc(p.x,p.y,p.r,0,7);pctx.fill();
     }
