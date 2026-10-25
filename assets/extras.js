@@ -7,7 +7,7 @@
   render=function(){
     prevRender();
     const t=theme();
-    if(t&&t.dream){ document.body.style.background=preview?(t.paper||'#76708e'):(t.desk||'#27252e'); }
+    if(t&&t.dream){ document.body.style.background=(t.desk||'#27252e'); }
     if(preview){fitPreview();}
     else if(fitApplied){                      // 离开预览：清除预览尺寸，恢复编辑区
       const f=document.getElementById('frame');
@@ -41,7 +41,7 @@
     'body.preview{overflow:hidden;padding-bottom:0!important}',
     'body.preview .work{max-width:none!important;padding:0!important}',
     'body.preview .workhead{display:none!important}',
-    'body.preview .nav{position:fixed;left:50%;transform:translateX(-50%);bottom:58px;margin:0!important;z-index:20}'
+    'body.preview .nav{position:fixed;left:auto;right:64px;transform:none;bottom:54px;margin:0!important;z-index:20}'
   ].join('');
   document.head.append(st);
 
