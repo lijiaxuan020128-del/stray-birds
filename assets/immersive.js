@@ -35,7 +35,7 @@
   function open(url) {
     const target = new URL(url, location.href);
     if (!['http:', 'https:'].includes(target.protocol)) { toast('效果链接格式不正确'); return; }
-    if (target.hostname === 'editor.p5js.org') { target.href = target.href.replace('/full/','/embed/'); }
+    if (target.hostname === 'editor.p5js.org') { toast('请填写独立效果页面地址；p5.js 分享链接仍会显示分享界面'); return; }
     previousFocus = document.activeElement;
     previousOverflow = document.body.style.overflow;
     frame.src = target.href;
