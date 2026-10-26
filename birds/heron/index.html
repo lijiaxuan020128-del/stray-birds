@@ -62,9 +62,25 @@
       move();
     })();
 
-    // 目录页会按页动态渲染鸟类。用同源隐藏 iframe 真正运行目录，再逐页寻找苍鹭。
-    (function loadHeronArtworkFromCatalog(){
+    (function loadHeronArtwork(){
       const target = document.getElementById('heronArt');
+
+      // 从目录点击苍鹭进入沉浸页时，父页面里已经存在这张插画。
+      // GitHub Pages 同源，因此直接读取父页面的 data URL 最稳定，也不需要重新解析超大的目录文件。
+      try {
+        if (window.parent && window.parent !== window) {
+          const parentDoc = window.parent.document;
+          const parentHeron = parentDoc.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');
+          if (parentHeron && parentHeron.src) {
+            target.src = parentHeron.src;
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('无法直接读取父目录中的苍鹭插画，改用目录扫描：', error);
+      }
+
+      // 若用户直接打开苍鹭页面，则隐藏运行一次目录，逐页寻找苍鹭作为备用方案。
       const frame = document.createElement('iframe');
       frame.src = '../../?heron-art-source=1';
       frame.setAttribute('aria-hidden', 'true');
@@ -93,15 +109,11 @@
 
             const pageButtons = Array.from(doc.querySelectorAll('#pages button'));
             if (pageButtons.length) {
-              const index = (tries - 1) % pageButtons.length;
-              pageButtons[index].click();
+              pageButtons[(tries - 1) % pageButtons.length].click();
             }
 
-            if (tries < 12) {
-              setTimeout(scan, 180);
-            } else {
-              finish('');
-            }
+            if (tries < 12) setTimeout(scan, 180);
+            else finish('');
           } catch (error) {
             console.error('苍鹭插画读取失败：', error);
             finish('');
