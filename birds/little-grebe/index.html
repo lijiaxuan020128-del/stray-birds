@@ -8,12 +8,26 @@
     
     <link rel="stylesheet" type="text/css" href="style.css">
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      html, body, main { margin: 0 !important; padding: 0 !important;
+        width: 100%; height: 100%; overflow: hidden !important; }
+      canvas {
+        position: fixed !important;
+        left: 50% !important; top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: max(100vw, 177.77777778vh) !important;
+        height: max(100vh, 56.25vw) !important;
+        max-width: none !important; max-height: none !important;
+        margin: 0 !important; display: block !important;
+      }
+    </style>
 
   </head>
   <body>
     <main>
     </main>
     <script src="sketch.js"></script>
-  <script src="../../assets/effect-fit.js"></script>
+  
 </body>
 </html>

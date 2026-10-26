@@ -22,7 +22,7 @@
     ['普通翠鸟', 'birds/kingfisher/'],
     ['普通雨燕', 'birds/swift/'],
     ['太平鸟', 'birds/waxwing/'],
-    ['小䴙䴘', 'birds/little-grebe/'],
+    ['小䴙䴘', 'birds/little-grebe/?v=20261026-fit2'],
     ['针尾沙锥', 'birds/pin-tailed-snipe/'],
     ['震旦鸦雀', 'birds/reed-parrotbill/'],
     ['珠颈斑鸠', 'birds/spotted-dove-kestrel/'],
@@ -31,7 +31,7 @@
     ['斑头雁', 'birds/bar-headed-goose/'],
     ['大斑啄木鸟', 'birds/great-spotted-woodpecker/'],
     ['戴胜', 'birds/hoopoe/'],
-    ['黑水鸡', 'birds/moorhen/'],
+    ['黑水鸡', 'birds/moorhen/?v=20261026-fit2'],
     ['鸿雁', 'birds/swan-goose/'],
     ['家燕', 'birds/barn-swallow/']
   ];
