@@ -14,7 +14,11 @@
         <div class="eyebrow">FIELD NOTES · 涉禽</div>
         <h1>苍鹭 <span>Grey Heron</span></h1>
       </div>
-      <a class="back-link" href="../../">返回目录</a>
+      <nav class="page-actions" aria-label="页面操作">
+        <button id="backToCatalog" type="button">← 目录</button>
+        <span aria-hidden="true"></span>
+        <button id="pageFullscreen" type="button">全屏 ↗</button>
+      </nav>
     </header>
 
     <section class="species-info">
@@ -59,6 +63,23 @@
       };
       new MutationObserver(move).observe(document.body, {childList:true, subtree:true});
       move();
+    })();
+
+    (function pageControls(){
+      const back = document.getElementById('backToCatalog');
+      const full = document.getElementById('pageFullscreen');
+      back.addEventListener('click', () => {
+        if (window.parent && window.parent !== window) window.parent.postMessage({type:'stray-birds-close'}, location.origin);
+        else location.href = '../../';
+      });
+      full.addEventListener('click', () => {
+        if (window.parent && window.parent !== window) window.parent.postMessage({type:'stray-birds-fullscreen'}, location.origin);
+        else if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+        else document.exitFullscreen?.();
+      });
+      document.addEventListener('fullscreenchange', () => {
+        full.textContent = document.fullscreenElement ? '退出全屏' : '全屏 ↗';
+      });
     })();
 
     (function loadHeronArtwork(){
