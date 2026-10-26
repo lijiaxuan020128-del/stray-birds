@@ -25,10 +25,56 @@
     ['家燕','birds/view/?bird=家燕']
   ];
   let previousFocus;
-  async function close(){if(document.fullscreenElement===panel)await document.exitFullscreen().catch(()=>{});panel.close();frame.src='about:blank';document.documentElement.style.overflow='';document.body.style.overflow='';previousFocus?.focus()}
+
+  async function close(){
+    if(document.fullscreenElement===panel)await document.exitFullscreen().catch(()=>{});
+    panel.close();frame.src='about:blank';document.documentElement.style.overflow='';document.body.style.overflow='';previousFocus?.focus();
+  }
+
+  async function togglePanelFullscreen(){
+    try{
+      if(document.fullscreenElement)await document.exitFullscreen();
+      else await panel.requestFullscreen();
+    }catch{
+      toast('此浏览器暂不支持全屏，仍可在窗口内观看');
+    }
+  }
+
   panel.addEventListener('cancel',e=>{e.preventDefault();close()});
-  window.addEventListener('message',async e=>{if(e.source!==frame.contentWindow||!e.data)return;if(e.data.type==='stray-birds-close')close();if(e.data.type==='stray-birds-fullscreen'){try{if(document.fullscreenElement)await document.exitFullscreen();else await panel.requestFullscreen()}catch{toast('此浏览器暂不支持全屏，仍可在窗口内观看')}}});
-  function open(url){if(panel.open)return;const target=new URL(url,location.href);if(!['http:','https:'].includes(target.protocol)){toast('效果链接格式不正确');return}if(target.hostname==='editor.p5js.org'){toast('请填写独立效果页面地址；p5.js 分享链接仍会显示分享界面');return}previousFocus=document.activeElement;frame.src=target.href;panel.showModal()}
+
+  // 全屏必须直接发生在用户点击事件中。若先通过 postMessage 再请求，
+  // 浏览器会丢失 user activation，因此按钮看起来会“没有反应”。
+  // 详情页与目录同源，所以在 iframe 加载后直接接管其全屏按钮。
+  frame.addEventListener('load',()=>{
+    if(frame.src==='about:blank')return;
+    try{
+      const doc=frame.contentDocument;
+      const full=doc&&doc.querySelector('#full, #pageFullscreen');
+      if(!full||full.dataset.catalogFullscreenBound)return;
+      full.dataset.catalogFullscreenBound='1';
+      full.addEventListener('click',e=>{
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        togglePanelFullscreen();
+      },true);
+    }catch{}
+  });
+
+  window.addEventListener('message',async e=>{
+    if(e.source!==frame.contentWindow||!e.data)return;
+    if(e.data.type==='stray-birds-close')close();
+    // 保留兼容旧页面；新页面的点击由上面的同源 click 监听直接处理。
+    if(e.data.type==='stray-birds-fullscreen')togglePanelFullscreen();
+  });
+
+  function open(url){
+    if(panel.open)return;
+    const target=new URL(url,location.href);
+    if(!['http:','https:'].includes(target.protocol)){toast('效果链接格式不正确');return}
+    if(target.hostname==='editor.p5js.org'){toast('请填写独立效果页面地址；p5.js 分享链接仍会显示分享界面');return}
+    previousFocus=document.activeElement;frame.src=target.href;panel.showModal();
+  }
   function builtInEffect(name){const item=localBirdPages.find(([birdName])=>name.includes(birdName));return item?item[1]:''}
-  const originalActivate=activate;activate=function(b,part){if(!preview)return originalActivate(b,part);const builtIn=builtInEffect(b.name);if(builtIn)return open(builtIn);if(b.url)return open(b.url);toast('这只鸟的效果链接还没有填写')};
+  const originalActivate=activate;
+  activate=function(b,part){if(!preview)return originalActivate(b,part);const builtIn=builtInEffect(b.name);if(builtIn)return open(builtIn);if(b.url)return open(b.url);toast('这只鸟的效果链接还没有填写')};
 })();
