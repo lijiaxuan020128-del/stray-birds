@@ -17,10 +17,6 @@
       <a class="back-link" href="../../">返回目录</a>
     </header>
 
-    <section class="observation-frame" aria-label="苍鹭动态观察窗口">
-      <div id="sketchMount"></div>
-    </section>
-
     <section class="species-info">
       <div class="identity-card">
         <div class="bird-art-wrap"><img id="heronArt" alt="苍鹭插画" /></div>
@@ -44,11 +40,18 @@
         <p>主要活动于湖泊、河流、湿地、浅水岸边等开阔水域。这里保留远山、草地与浅水组成的环境，让粒子的运动依附于真实栖息空间，而不是脱离环境的装饰动画。</p>
       </article>
     </section>
+
+    <section class="effect-section">
+      <div class="effect-label">03 / OBSERVATION</div>
+      <h2 class="effect-title">效果展示</h2>
+      <section class="observation-frame" aria-label="苍鹭动态观察窗口">
+        <div id="sketchMount"></div>
+      </section>
+    </section>
   </main>
 
   <script src="sketch.js"></script>
   <script>
-    // p5 默认会把 canvas 放进页面 main；创建后把它真正移入 16:9 观察框。
     (function mountHeronCanvas(){
       const mount = document.getElementById('sketchMount');
       const move = () => {
@@ -59,14 +62,22 @@
       move();
     })();
 
-    // 直接复用目录中已经使用的苍鹭透明插画，避免建立第二份不同版本的图片。
+    // 从目录页面寻找苍鹭贴图。兼容目录项不是 aria-label 的情况。
     fetch('../../index.html')
       .then(r => r.text())
       .then(html => {
         const doc = new DOMParser().parseFromString(html, 'text/html');
-        const item = doc.querySelector('.item[aria-label="苍鹭"]');
-        const source = item && item.querySelector('img');
-        if (source) document.getElementById('heronArt').src = source.getAttribute('src');
+        const candidates = Array.from(doc.querySelectorAll('img'));
+        const source = candidates.find(img => {
+          const text = [img.alt, img.title, img.getAttribute('aria-label'), img.src]
+            .filter(Boolean).join(' ');
+          const parentText = img.parentElement ? img.parentElement.textContent : '';
+          return /苍鹭|heron/i.test(text + ' ' + parentText);
+        });
+        if (source) {
+          const raw = source.getAttribute('src');
+          document.getElementById('heronArt').src = new URL(raw, new URL('../../', location.href)).href;
+        }
       })
       .catch(() => {});
   </script>
