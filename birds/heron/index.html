@@ -14,22 +14,61 @@
         <div class="eyebrow">FIELD NOTES · 涉禽</div>
         <h1>苍鹭 <span>Grey Heron</span></h1>
       </div>
-      <div class="particle-key" aria-label="粒子图例">
-        <span class="particle-dot"></span>
-        <div><strong>一个粒子，一只鸟</strong><small>ONE PARTICLE · ONE BIRD</small></div>
-      </div>
+      <a class="back-link" href="../../">返回目录</a>
     </header>
 
     <section class="observation-frame" aria-label="苍鹭动态观察窗口">
       <div id="sketchMount"></div>
     </section>
 
-    <footer class="species-foot">
-      <div class="abstract-note"><span class="particle-dot small"></span><span>画面中的圆点并非装饰，而是对单只苍鹭的抽象表达。</span></div>
-      <p>苍鹭常在浅水、湿地与岸边缓慢活动，个体之间保持一定距离。画面以少量粒子的移动、停留与转向，概括它们相对疏离、从容的活动状态。</p>
-    </footer>
+    <section class="species-info">
+      <div class="identity-card">
+        <div class="bird-art-wrap"><img id="heronArt" alt="苍鹭插画" /></div>
+        <div class="translation">
+          <div class="real-bird-label">苍鹭</div>
+          <div class="translation-line"><span></span></div>
+          <div class="particle-sample" aria-label="网页中苍鹭粒子示意"></div>
+          <div class="particle-copy"><strong>一个粒子 = 一只苍鹭</strong><small>ONE PARTICLE · ONE BIRD</small></div>
+        </div>
+      </div>
+
+      <article class="info-block">
+        <div class="info-index">01 / BEHAVIOR</div>
+        <h2>行为</h2>
+        <p>苍鹭常以较疏离的方式在水边活动。它们缓慢移动、停留观察，也会改变方向或短距离飞往另一处水域。画面以少量粒子的移动、停顿、转向与飞入飞出，对应这种从容而彼此保持距离的活动状态。</p>
+      </article>
+
+      <article class="info-block">
+        <div class="info-index">02 / HABITAT</div>
+        <h2>环境</h2>
+        <p>主要活动于湖泊、河流、湿地、浅水岸边等开阔水域。这里保留远山、草地与浅水组成的环境，让粒子的运动依附于真实栖息空间，而不是脱离环境的装饰动画。</p>
+      </article>
+    </section>
   </main>
 
   <script src="sketch.js"></script>
+  <script>
+    // p5 默认会把 canvas 放进页面 main；创建后把它真正移入 16:9 观察框。
+    (function mountHeronCanvas(){
+      const mount = document.getElementById('sketchMount');
+      const move = () => {
+        const canvas = document.querySelector('canvas.p5Canvas');
+        if (canvas && canvas.parentElement !== mount) mount.appendChild(canvas);
+      };
+      new MutationObserver(move).observe(document.body, {childList:true, subtree:true});
+      move();
+    })();
+
+    // 直接复用目录中已经使用的苍鹭透明插画，避免建立第二份不同版本的图片。
+    fetch('../../index.html')
+      .then(r => r.text())
+      .then(html => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const item = doc.querySelector('.item[aria-label="苍鹭"]');
+        const source = item && item.querySelector('img');
+        if (source) document.getElementById('heronArt').src = source.getAttribute('src');
+      })
+      .catch(() => {});
+  </script>
 </body>
 </html>
