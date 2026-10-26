@@ -1,18 +1,69 @@
 (() => {
   const panel = document.createElement('dialog');
   panel.setAttribute('aria-label', '飞鸟集沉浸展示');
-  panel.style.cssText = 'position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:#22282b;overflow:hidden';
+  panel.style.cssText = 'position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:#27252e;overflow:hidden';
+
   const frame = document.createElement('iframe');
   frame.title = '鸟类动态效果';
   frame.allow = 'fullscreen';
   frame.style.cssText = 'display:block;width:100%;height:100%;border:0';
+
   const controls = document.createElement('div');
-  controls.style.cssText = 'position:absolute;top:16px;left:16px;display:flex;gap:8px';
+  controls.setAttribute('aria-label', '展示控制');
+  controls.style.cssText = [
+    'position:absolute',
+    'top:24px',
+    'right:26px',
+    'z-index:20',
+    'display:flex',
+    'align-items:center',
+    'gap:18px',
+    'padding:8px 13px',
+    'border:1px solid rgba(244,239,220,.18)',
+    'background:rgba(39,37,46,.78)',
+    'backdrop-filter:blur(8px)',
+    '-webkit-backdrop-filter:blur(8px)',
+    'font-family:Arial,"Microsoft Yahei",sans-serif',
+    'letter-spacing:1.5px'
+  ].join(';');
+
+  function styleControl(button) {
+    button.style.cssText = [
+      'appearance:none',
+      'border:0',
+      'border-radius:0',
+      'padding:3px 0',
+      'margin:0',
+      'background:transparent',
+      'color:rgb(244,239,220)',
+      'font:11px Arial,"Microsoft Yahei",sans-serif',
+      'letter-spacing:1.5px',
+      'line-height:1.4',
+      'opacity:.68',
+      'cursor:pointer',
+      'white-space:nowrap'
+    ].join(';');
+    button.addEventListener('mouseenter', () => button.style.opacity = '1');
+    button.addEventListener('mouseleave', () => button.style.opacity = '.68');
+    button.addEventListener('focus', () => button.style.opacity = '1');
+    button.addEventListener('blur', () => button.style.opacity = '.68');
+  }
+
   const back = document.createElement('button');
-  back.textContent = '← 返回目录';
+  back.textContent = '← 目录';
+  back.title = '返回目录';
+  styleControl(back);
+
+  const divider = document.createElement('span');
+  divider.setAttribute('aria-hidden', 'true');
+  divider.style.cssText = 'display:block;width:1px;height:13px;background:rgba(244,239,220,.18)';
+
   const full = document.createElement('button');
-  full.textContent = '全屏';
-  controls.append(back, full);
+  full.textContent = '全屏 ↗';
+  full.title = '全屏观看';
+  styleControl(full);
+
+  controls.append(back, divider, full);
   panel.append(frame, controls);
   document.body.append(panel);
 
@@ -61,7 +112,7 @@
   };
 
   document.addEventListener('fullscreenchange', () => {
-    full.textContent = document.fullscreenElement ? '退出全屏' : '全屏';
+    full.textContent = document.fullscreenElement ? '退出全屏' : '全屏 ↗';
   });
 
   function open(url) {
