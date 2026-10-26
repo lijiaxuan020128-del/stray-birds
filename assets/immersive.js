@@ -6,7 +6,7 @@
   frame.title = '鸟类动态效果'; frame.allow = 'fullscreen'; frame.style.cssText = 'display:block;width:100%;height:100%;border:0';
   panel.append(frame); document.body.append(panel);
   const localBirdPages = [
-    ['苍鹭', 'birds/heron/?v=20261026-1749'],['麻雀','birds/sparrow/'],['普通翠鸟','birds/kingfisher/'],['普通雨燕','birds/swift/'],['太平鸟','birds/waxwing/'],['小䴙䴘','birds/little-grebe/?v=20261026-fit2'],['针尾沙锥','birds/pin-tailed-snipe/'],['震旦鸦雀','birds/reed-parrotbill/'],['珠颈斑鸠','birds/spotted-dove-kestrel/'],['红隼','birds/spotted-dove-kestrel/'],['白鹡鸰','birds/white-wagtail/'],['斑头雁','birds/bar-headed-goose/'],['大斑啄木鸟','birds/great-spotted-woodpecker/'],['戴胜','birds/hoopoe/'],['黑水鸡','birds/moorhen/?v=20261026-fit2'],['鸿雁','birds/swan-goose/'],['家燕','birds/barn-swallow/']
+    ['苍鹭', 'birds/heron/?v=20261026-1938'],['麻雀','birds/sparrow/'],['普通翠鸟','birds/kingfisher/'],['普通雨燕','birds/swift/'],['太平鸟','birds/waxwing/'],['小䴙䴘','birds/little-grebe/?v=20261026-fit2'],['针尾沙锥','birds/pin-tailed-snipe/'],['震旦鸦雀','birds/reed-parrotbill/'],['珠颈斑鸠','birds/spotted-dove-kestrel/'],['红隼','birds/spotted-dove-kestrel/'],['白鹡鸰','birds/white-wagtail/'],['斑头雁','birds/bar-headed-goose/'],['大斑啄木鸟','birds/great-spotted-woodpecker/'],['戴胜','birds/hoopoe/'],['黑水鸡','birds/moorhen/?v=20261026-fit2'],['鸿雁','birds/swan-goose/'],['家燕','birds/barn-swallow/']
   ];
   let previousFocus;
   async function close(){if(document.fullscreenElement===panel)await document.exitFullscreen().catch(()=>{});panel.close();frame.src='about:blank';document.documentElement.style.overflow='';document.body.style.overflow='';previousFocus?.focus()}
