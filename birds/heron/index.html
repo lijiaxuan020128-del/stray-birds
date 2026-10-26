@@ -10,21 +10,13 @@
 <body>
   <main class="species-page">
     <header class="species-head">
-      <div>
-        <div class="eyebrow">FIELD NOTES · 涉禽</div>
-        <h1>苍鹭 <span>Grey Heron</span></h1>
-      </div>
-      <nav class="page-actions" aria-label="页面操作">
-        <button id="backToCatalog" type="button">← 目录</button>
-        <span aria-hidden="true"></span>
-        <button id="pageFullscreen" type="button">全屏 ↗</button>
-      </nav>
+      <div><div class="eyebrow">FIELD NOTES · 涉禽</div><h1>苍鹭 <span>Grey Heron</span></h1></div>
+      <nav class="page-actions" aria-label="页面操作"><button id="backToCatalog" type="button">← 目录</button><span aria-hidden="true"></span><button id="pageFullscreen" type="button">全屏 ↗</button></nav>
     </header>
-
     <section class="species-info">
       <div class="identity-card">
         <div class="mapping-row">
-          <div class="bird-art-wrap"><img id="heronArt" alt="苍鹭插画" /></div>
+          <div class="bird-art-wrap"><canvas id="heronTrimmed" aria-label="苍鹭插画"></canvas></div>
           <div class="translation-line" aria-hidden="true"><span></span></div>
           <div class="particle-sample" aria-label="网页中苍鹭粒子示意"></div>
         </div>
@@ -33,147 +25,21 @@
           <small><span>ONE GREY HERON</span><span>ABSTRACTED AS</span><span>ONE PARTICLE</span></small>
         </div>
       </div>
-
-      <article class="info-block">
-        <div class="info-index">01 / BEHAVIOR</div>
-        <h2>行为</h2>
-        <p>苍鹭常以较疏离的方式在水边活动。它们缓慢移动、停留观察，也会改变方向或短距离飞往另一处水域。画面以少量粒子的移动、停顿、转向与飞入飞出，对应这种从容而彼此保持距离的活动状态。</p>
-      </article>
-
-      <article class="info-block">
-        <div class="info-index">02 / HABITAT</div>
-        <h2>环境</h2>
-        <p>主要活动于湖泊、河流、湿地、浅水岸边等开阔水域。这里保留远山、草地与浅水组成的环境，让粒子的运动依附于真实栖息空间，而不是脱离环境的装饰动画。</p>
-      </article>
+      <article class="info-block"><div class="info-index">01 / BEHAVIOR</div><h2>行为</h2><p>苍鹭常以较疏离的方式在水边活动。它们缓慢移动、停留观察，也会改变方向或短距离飞往另一处水域。画面以少量粒子的移动、停顿、转向与飞入飞出，对应这种从容而彼此保持距离的活动状态。</p></article>
+      <article class="info-block"><div class="info-index">02 / HABITAT</div><h2>环境</h2><p>主要活动于湖泊、河流、湿地、浅水岸边等开阔水域。这里保留远山、草地与浅水组成的环境，让粒子的运动依附于真实栖息空间，而不是脱离环境的装饰动画。</p></article>
     </section>
-
-    <section class="effect-section">
-      <div class="effect-label">03 / OBSERVATION</div>
-      <h2 class="effect-title">效果展示</h2>
-      <section class="observation-frame" aria-label="苍鹭动态观察窗口">
-        <div id="sketchMount"></div>
-      </section>
-    </section>
+    <section class="effect-section"><div class="effect-label">03 / OBSERVATION</div><h2 class="effect-title">效果展示</h2><section class="observation-frame" aria-label="苍鹭动态观察窗口"><div id="sketchMount"></div></section></section>
   </main>
-
   <script src="sketch.js"></script>
   <script>
-    (function mountHeronCanvas(){
-      const mount = document.getElementById('sketchMount');
-      const move = () => {
-        const canvas = document.querySelector('canvas.p5Canvas');
-        if (canvas && canvas.parentElement !== mount) mount.appendChild(canvas);
-      };
-      new MutationObserver(move).observe(document.body, {childList:true, subtree:true});
-      move();
-    })();
-
-    (function pageControls(){
-      const back = document.getElementById('backToCatalog');
-      const full = document.getElementById('pageFullscreen');
-      back.addEventListener('click', () => {
-        if (window.parent && window.parent !== window) window.parent.postMessage({type:'stray-birds-close'}, location.origin);
-        else location.href = '../../';
-      });
-      full.addEventListener('click', () => {
-        if (window.parent && window.parent !== window) window.parent.postMessage({type:'stray-birds-fullscreen'}, location.origin);
-        else if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
-        else document.exitFullscreen?.();
-      });
-      document.addEventListener('fullscreenchange', () => {
-        full.textContent = document.fullscreenElement ? '退出全屏' : '全屏 ↗';
-      });
-    })();
-
-    function cropTransparentArtwork(img){
-      if (!img || !img.complete || !img.naturalWidth) return;
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d', {willReadFrequently:true});
-        ctx.drawImage(img, 0, 0);
-        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-        let minX = canvas.width, minY = canvas.height, maxX = -1, maxY = -1;
-        for (let y = 0; y < canvas.height; y++) {
-          for (let x = 0; x < canvas.width; x++) {
-            if (data[(y * canvas.width + x) * 4 + 3] > 8) {
-              if (x < minX) minX = x;
-              if (x > maxX) maxX = x;
-              if (y < minY) minY = y;
-              if (y > maxY) maxY = y;
-            }
-          }
-        }
-        if (maxX < minX || maxY < minY) return;
-        const pad = 2;
-        minX = Math.max(0, minX - pad); minY = Math.max(0, minY - pad);
-        maxX = Math.min(canvas.width - 1, maxX + pad); maxY = Math.min(canvas.height - 1, maxY + pad);
-        const w = maxX - minX + 1, h = maxY - minY + 1;
-        const out = document.createElement('canvas');
-        out.width = w; out.height = h;
-        out.getContext('2d').drawImage(canvas, minX, minY, w, h, 0, 0, w, h);
-        img.src = out.toDataURL('image/png');
-        img.style.width = 'auto';
-        img.style.height = Math.min(190, Math.round(150 * h / Math.max(w, 1))) + 'px';
-        img.style.maxWidth = '150px';
-        img.style.maxHeight = '190px';
-      } catch (error) {
-        console.warn('苍鹭透明边界裁切失败：', error);
-      }
-    }
-
+    (function mountHeronCanvas(){const mount=document.getElementById('sketchMount');const move=()=>{const canvas=document.querySelector('canvas.p5Canvas');if(canvas&&canvas.parentElement!==mount)mount.appendChild(canvas)};new MutationObserver(move).observe(document.body,{childList:true,subtree:true});move()})();
+    (function pageControls(){const back=document.getElementById('backToCatalog'),full=document.getElementById('pageFullscreen');back.addEventListener('click',()=>{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'stray-birds-close'},location.origin);else location.href='../../'});full.addEventListener('click',()=>{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'stray-birds-fullscreen'},location.origin);else if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()});document.addEventListener('fullscreenchange',()=>{full.textContent=document.fullscreenElement?'退出全屏':'全屏 ↗'})})();
     (function loadHeronArtwork(){
-      const target = document.getElementById('heronArt');
-      target.addEventListener('load', () => cropTransparentArtwork(target));
-      try {
-        if (window.parent && window.parent !== window) {
-          const parentDoc = window.parent.document;
-          const parentHeron = parentDoc.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');
-          if (parentHeron && parentHeron.src) {
-            target.src = parentHeron.src;
-            return;
-          }
-        }
-      } catch (error) {
-        console.warn('无法直接读取父目录中的苍鹭插画，改用目录扫描：', error);
-      }
-
-      const frame = document.createElement('iframe');
-      frame.src = '../../?heron-art-source=1';
-      frame.setAttribute('aria-hidden', 'true');
-      frame.tabIndex = -1;
-      frame.style.cssText = 'position:fixed;width:1px;height:1px;left:-10000px;top:-10000px;opacity:0;pointer-events:none;border:0;';
-      document.body.appendChild(frame);
-
-      const finish = (src) => {
-        if (src) target.src = src;
-        setTimeout(() => frame.remove(), 50);
-      };
-
-      frame.addEventListener('load', () => {
-        let tries = 0;
-        const scan = () => {
-          tries++;
-          try {
-            const doc = frame.contentDocument;
-            if (!doc) throw new Error('目录文档不可访问');
-            const heron = doc.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');
-            if (heron && heron.src) {
-              finish(heron.src);
-              return;
-            }
-            const pageButtons = Array.from(doc.querySelectorAll('#pages button'));
-            if (pageButtons.length) pageButtons[(tries - 1) % pageButtons.length].click();
-            if (tries < 12) setTimeout(scan, 180);
-            else finish('');
-          } catch (error) {
-            console.error('苍鹭插画读取失败：', error);
-            finish('');
-          }
-        };
-        setTimeout(scan, 350);
-      }, { once:true });
+      const output=document.getElementById('heronTrimmed');
+      function drawTrimmed(src){
+        const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);const d=x.getImageData(0,0,c.width,c.height).data;let minX=c.width,minY=c.height,maxX=-1,maxY=-1;for(let yy=0;yy<c.height;yy++){for(let xx=0;xx<c.width;xx++){if(d[(yy*c.width+xx)*4+3]>8){if(xx<minX)minX=xx;if(xx>maxX)maxX=xx;if(yy<minY)minY=yy;if(yy>maxY)maxY=yy}}}if(maxX<minX)return;const w=maxX-minX+1,h=maxY-minY+1;output.width=w;output.height=h;output.getContext('2d').drawImage(c,minX,minY,w,h,0,0,w,h)}catch(e){console.warn('苍鹭透明区域裁切失败',e)}};img.src=src}
+      try{if(window.parent&&window.parent!==window){const p=window.parent.document.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');if(p&&p.src){drawTrimmed(p.src);return}}}catch(e){}
+      const frame=document.createElement('iframe');frame.src='../../?heron-art-source=1749';frame.style.cssText='position:fixed;width:1px;height:1px;left:-10000px;top:-10000px;opacity:0;pointer-events:none;border:0';document.body.appendChild(frame);frame.onload=()=>{let tries=0;const scan=()=>{tries++;try{const doc=frame.contentDocument,p=doc&&doc.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');if(p&&p.src){drawTrimmed(p.src);frame.remove();return}const bs=doc?Array.from(doc.querySelectorAll('#pages button')):[];if(bs.length)bs[(tries-1)%bs.length].click();if(tries<12)setTimeout(scan,180);else frame.remove()}catch(e){frame.remove()}};setTimeout(scan,350)}
     })();
   </script>
 </body>
