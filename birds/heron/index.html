@@ -62,24 +62,61 @@
       move();
     })();
 
-    // 从目录页面寻找苍鹭贴图。兼容目录项不是 aria-label 的情况。
-    fetch('../../index.html')
-      .then(r => r.text())
-      .then(html => {
+    // 目录中的鸟图是 Base64 内嵌数据。直接读取完整目录 HTML，定位“苍鹭”附近的图片数据。
+    (async function loadHeronArtwork(){
+      const target = document.getElementById('heronArt');
+      try {
+        const response = await fetch('../../index.html', { cache: 'no-store' });
+        const html = await response.text();
+
+        // 1. 优先尝试目录当前 DOM 中直接存在的苍鹭项目。
         const doc = new DOMParser().parseFromString(html, 'text/html');
-        const candidates = Array.from(doc.querySelectorAll('img'));
-        const source = candidates.find(img => {
-          const text = [img.alt, img.title, img.getAttribute('aria-label'), img.src]
-            .filter(Boolean).join(' ');
-          const parentText = img.parentElement ? img.parentElement.textContent : '';
-          return /苍鹭|heron/i.test(text + ' ' + parentText);
-        });
-        if (source) {
-          const raw = source.getAttribute('src');
-          document.getElementById('heronArt').src = new URL(raw, new URL('../../', location.href)).href;
+        const direct = doc.querySelector('[aria-label="苍鹭"] img, [aria-label*="苍鹭"] img');
+        if (direct && direct.getAttribute('src')) {
+          target.src = direct.getAttribute('src');
+          return;
         }
-      })
-      .catch(() => {});
+
+        // 2. 保存后的目录可能把各页鸟类存在脚本/JSON中。以“苍鹭”为中心寻找最近的 PNG data URL。
+        const nameIndex = html.indexOf('苍鹭');
+        if (nameIndex !== -1) {
+          const before = html.slice(Math.max(0, nameIndex - 2500000), nameIndex);
+          const after = html.slice(nameIndex, Math.min(html.length, nameIndex + 2500000));
+          const dataPattern = /data:image\/png;base64,[A-Za-z0-9+/=]+/g;
+          const beforeMatches = before.match(dataPattern) || [];
+          const afterMatch = after.match(dataPattern);
+          const nearestBefore = beforeMatches.length ? beforeMatches[beforeMatches.length - 1] : null;
+          const nearestAfter = afterMatch && afterMatch.length ? afterMatch[0] : null;
+
+          // 在目录结构中图片通常紧邻鸟名；优先使用同一项目中位于鸟名后的图片，否则取前一张。
+          if (nearestAfter) {
+            const distanceAfter = after.indexOf(nearestAfter);
+            if (distanceAfter < 1200000) {
+              target.src = nearestAfter;
+              return;
+            }
+          }
+          if (nearestBefore) {
+            target.src = nearestBefore;
+            return;
+          }
+        }
+
+        // 3. 最后遍历所有目录项目，用 aria-label/text 锁定苍鹭。
+        for (const item of doc.querySelectorAll('.item')) {
+          const label = (item.getAttribute('aria-label') || '') + ' ' + item.textContent;
+          if (/苍鹭|Grey Heron/i.test(label)) {
+            const img = item.querySelector('img');
+            if (img && img.getAttribute('src')) {
+              target.src = img.getAttribute('src');
+              return;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('苍鹭插画读取失败：', error);
+      }
+    })();
   </script>
 </body>
 </html>
