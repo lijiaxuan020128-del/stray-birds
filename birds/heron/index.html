@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>苍鹭 · 飞鸟集</title>
   <script src="p5.js"></script>
-  <link rel="stylesheet" type="text/css" href="style.css?v=20261026-1854" />
+  <link rel="stylesheet" type="text/css" href="style.css?v=20261026-1902" />
 </head>
 <body>
   <main class="species-page">
     <header class="species-head">
       <div><div class="eyebrow">FIELD NOTES · 涉禽</div><h1>苍鹭 <span>Grey Heron</span></h1></div>
-      <nav class="page-actions" aria-label="页面操作"><button id="backToCatalog" type="button">← 目录</button><span aria-hidden="true"></span><button id="pageFullscreen" type="button">全屏 ↗</button></nav>
+      <nav class="page-actions" aria-label="页面操作"><button id="backToCatalog" type="button">← 返回目录</button></nav>
     </header>
     <section class="species-info">
       <div class="identity-card">
@@ -36,41 +36,14 @@
       <article class="info-block"><div class="info-index">01 / BEHAVIOR</div><h2>行为</h2><p>苍鹭常以较疏离的方式在水边活动。它们缓慢移动、停留观察，也会改变方向或短距离飞往另一处水域。画面以少量粒子的移动、停顿、转向与飞入飞出，对应这种从容而彼此保持距离的活动状态。</p></article>
       <article class="info-block"><div class="info-index">02 / HABITAT</div><h2>环境</h2><p>主要活动于湖泊、河流、湿地、浅水岸边等开阔水域。这里保留远山、草地与浅水组成的环境，让粒子的运动依附于真实栖息空间，而不是脱离环境的装饰动画。</p></article>
     </section>
-    <section class="effect-section"><div class="effect-label">03 / OBSERVATION</div><h2 class="effect-title">效果展示</h2><section class="observation-frame" aria-label="苍鹭动态观察窗口"><div id="sketchMount"></div></section></section>
+    <section class="effect-section"><div class="effect-heading"><div><div class="effect-label">03 / OBSERVATION</div><h2 class="effect-title">效果展示</h2></div><button id="pageFullscreen" class="effect-fullscreen" type="button">全屏观看 ↗</button></div><section class="observation-frame" aria-label="苍鹭动态观察窗口"><div id="sketchMount"></div></section></section>
   </main>
   <script src="sketch.js"></script>
   <script>
     (function mountHeronCanvas(){const mount=document.getElementById('sketchMount');const move=()=>{const canvas=document.querySelector('canvas.p5Canvas');if(canvas&&canvas.parentElement!==mount)mount.appendChild(canvas)};new MutationObserver(move).observe(document.body,{childList:true,subtree:true});move()})();
-    (function pageControls(){const back=document.getElementById('backToCatalog'),full=document.getElementById('pageFullscreen');back.addEventListener('click',()=>{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'stray-birds-close'},location.origin);else location.href='../../'});full.addEventListener('click',()=>{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'stray-birds-fullscreen'},location.origin);else if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()});document.addEventListener('fullscreenchange',()=>{full.textContent=document.fullscreenElement?'退出全屏':'全屏 ↗'})})();
-    (function exactMappingAlignment(){
-      function align(){
-        const units=Array.from(document.querySelectorAll('.mapping-unit'));
-        units.forEach((unit,index)=>{
-          const visual=index===0?document.getElementById('heronTrimmed'):index===1?unit.querySelector('.translation-line'):unit.querySelector('.particle-sample');
-          const cn=unit.querySelector('.mapping-cn'),en=unit.querySelector('.mapping-en');
-          if(!visual||!cn||!en)return;
-          cn.style.transform='';en.style.transform='';
-          const vr=visual.getBoundingClientRect(),cr=cn.getBoundingClientRect();
-          let targetX=vr.left+vr.width/2;
-          if(index===0 && Number.isFinite(window.heronVisibleCenterRatio)) targetX=vr.left+vr.width*window.heronVisibleCenterRatio;
-          const delta=targetX-(cr.left+cr.width/2);
-          cn.style.transform=`translateX(${delta}px)`;
-          en.style.transform=`translateX(${delta}px)`;
-        });
-      }
-      window.alignHeronMapping=align;
-      window.addEventListener('resize',align);
-      window.addEventListener('load',()=>requestAnimationFrame(()=>requestAnimationFrame(align)));
-    })();
-    (function loadHeronArtwork(){
-      const output=document.getElementById('heronTrimmed');
-      function drawTrimmed(src){
-        const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);const d=x.getImageData(0,0,c.width,c.height).data;let minX=c.width,minY=c.height,maxX=-1,maxY=-1;for(let yy=0;yy<c.height;yy++){for(let xx=0;xx<c.width;xx++){if(d[(yy*c.width+xx)*4+3]>8){if(xx<minX)minX=xx;if(xx>maxX)maxX=xx;if(yy<minY)minY=yy;if(yy>maxY)maxY=yy}}}if(maxX<minX)return;const w=maxX-minX+1,h=maxY-minY+1;output.width=w;output.height=h;const out=output.getContext('2d',{willReadFrequently:true});out.drawImage(c,minX,minY,w,h,0,0,w,h);
-          const td=out.getImageData(0,0,w,h).data;let weight=0,weightedX=0;for(let yy=0;yy<h;yy++){for(let xx=0;xx<w;xx++){const a=td[(yy*w+xx)*4+3]/255;if(a>0.03){weight+=a;weightedX+=xx*a}}}window.heronVisibleCenterRatio=weight?((weightedX/weight)+0.5)/w:0.5;
-          requestAnimationFrame(()=>requestAnimationFrame(()=>window.alignHeronMapping?.()))}catch(e){console.warn('苍鹭透明区域裁切失败',e)}};img.src=src}
-      try{if(window.parent&&window.parent!==window){const p=window.parent.document.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');if(p&&p.src){drawTrimmed(p.src);return}}}catch(e){}
-      const frame=document.createElement('iframe');frame.src='../../?heron-art-source=1854';frame.style.cssText='position:fixed;width:1px;height:1px;left:-10000px;top:-10000px;opacity:0;pointer-events:none;border:0';document.body.appendChild(frame);frame.onload=()=>{let tries=0;const scan=()=>{tries++;try{const doc=frame.contentDocument,p=doc&&doc.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');if(p&&p.src){drawTrimmed(p.src);frame.remove();return}const bs=doc?Array.from(doc.querySelectorAll('#pages button')):[];if(bs.length)bs[(tries-1)%bs.length].click();if(tries<12)setTimeout(scan,180);else frame.remove()}catch(e){frame.remove()}};setTimeout(scan,350)}
-    })();
+    (function pageControls(){const back=document.getElementById('backToCatalog'),full=document.getElementById('pageFullscreen');back.addEventListener('click',()=>{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'stray-birds-close'},location.origin);else location.href='../../'});full.addEventListener('click',()=>{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'stray-birds-fullscreen'},location.origin);else if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()});document.addEventListener('fullscreenchange',()=>{full.textContent=document.fullscreenElement?'退出全屏':'全屏观看 ↗'})})();
+    (function exactMappingAlignment(){function align(){const units=Array.from(document.querySelectorAll('.mapping-unit'));units.forEach((unit,index)=>{const visual=index===0?document.getElementById('heronTrimmed'):index===1?unit.querySelector('.translation-line'):unit.querySelector('.particle-sample');const cn=unit.querySelector('.mapping-cn'),en=unit.querySelector('.mapping-en');if(!visual||!cn||!en)return;cn.style.transform='';en.style.transform='';const vr=visual.getBoundingClientRect(),cr=cn.getBoundingClientRect();let targetX=vr.left+vr.width/2;if(index===0&&Number.isFinite(window.heronVisibleCenterRatio))targetX=vr.left+vr.width*window.heronVisibleCenterRatio;const delta=targetX-(cr.left+cr.width/2);cn.style.transform=`translateX(${delta}px)`;en.style.transform=`translateX(${delta}px)`})}window.alignHeronMapping=align;window.addEventListener('resize',align);window.addEventListener('load',()=>requestAnimationFrame(()=>requestAnimationFrame(align)))})();
+    (function loadHeronArtwork(){const output=document.getElementById('heronTrimmed');function drawTrimmed(src){const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);const d=x.getImageData(0,0,c.width,c.height).data;let minX=c.width,minY=c.height,maxX=-1,maxY=-1;for(let yy=0;yy<c.height;yy++){for(let xx=0;xx<c.width;xx++){if(d[(yy*c.width+xx)*4+3]>8){if(xx<minX)minX=xx;if(xx>maxX)maxX=xx;if(yy<minY)minY=yy;if(yy>maxY)maxY=yy}}}if(maxX<minX)return;const w=maxX-minX+1,h=maxY-minY+1;output.width=w;output.height=h;const out=output.getContext('2d',{willReadFrequently:true});out.drawImage(c,minX,minY,w,h,0,0,w,h);const td=out.getImageData(0,0,w,h).data;let weight=0,weightedX=0;for(let yy=0;yy<h;yy++){for(let xx=0;xx<w;xx++){const a=td[(yy*w+xx)*4+3]/255;if(a>0.03){weight+=a;weightedX+=xx*a}}}window.heronVisibleCenterRatio=weight?((weightedX/weight)+0.5)/w:0.5;requestAnimationFrame(()=>requestAnimationFrame(()=>window.alignHeronMapping?.()))}catch(e){console.warn('苍鹭透明区域裁切失败',e)}};img.src=src}try{if(window.parent&&window.parent!==window){const p=window.parent.document.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');if(p&&p.src){drawTrimmed(p.src);return}}}catch(e){}const frame=document.createElement('iframe');frame.src='../../?heron-art-source=1902';frame.style.cssText='position:fixed;width:1px;height:1px;left:-10000px;top:-10000px;opacity:0;pointer-events:none;border:0';document.body.appendChild(frame);frame.onload=()=>{let tries=0;const scan=()=>{tries++;try{const doc=frame.contentDocument,p=doc&&doc.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');if(p&&p.src){drawTrimmed(p.src);frame.remove();return}const bs=doc?Array.from(doc.querySelectorAll('#pages button')):[];if(bs.length)bs[(tries-1)%bs.length].click();if(tries<12)setTimeout(scan,180);else frame.remove()}catch(e){frame.remove()}};setTimeout(scan,350)}})();
   </script>
 </body>
 </html>
