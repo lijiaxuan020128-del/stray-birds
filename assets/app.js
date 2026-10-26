@@ -11,10 +11,24 @@ function renumberBirds(){
 }
 
 const $=s=>document.querySelector(s),uid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));let book={version:1,pages:[{id:uid(),birds:[]}]},pi=0,selected=null,part='bird',preview=false,db,dirty=false;const page=()=>book.pages[pi],bird=()=>page().birds.find(b=>b.id===selected);let scale=1;
+const birdGroups={
+  '苍鹭':'涉禽','黑水鸡':'游禽','小䴙䴘':'游禽','针尾沙锥':'涉禽','鸿雁':'游禽','斑头雁':'游禽',
+  '普通翠鸟':'攀禽','大斑啄木鸟':'攀禽','戴胜':'攀禽',
+  '麻雀':'鸣禽','普通雨燕':'鸣禽','太平鸟':'鸣禽','震旦鸦雀':'鸣禽','白鹡鸰':'鸣禽','家燕':'鸣禽','灰椋鸟':'鸣禽',
+  '珠颈斑鸠':'陆禽','红隼':'猛禽','普通鵟':'猛禽'
+};
+function pageGroupLabel(){
+  const groups=[];
+  for(const b of page().birds){
+    const g=birdGroups[b.name];
+    if(g&&!groups.includes(g))groups.push(g);
+  }
+  return groups.length?groups.join(' & '):'目录';
+}
 function toast(t){let e=document.createElement('div');e.className='toast';e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),2600)}
 function changed(){dirty=true;$('#status').textContent='有未保存的修改';}
 function resize(){scale=$('#frame').clientWidth/1200;$('#canvas').style.transform=`scale(${scale})`;$('#frame').style.height=760*scale+'px'}new ResizeObserver(resize).observe($('#frame'));
-function render(){const c=$('#canvas');c.replaceChildren();let h=document.createElement('div');h.className='head';const HT={title:'飞鸟集',kicker:'目 录',caption:'BIRDS / A COLLECTION OF MOMENTS'};HT.title=page().title||HT.title;HT.kicker=page().kicker||HT.kicker;HT.caption=page().caption||HT.caption;
+function render(){const c=$('#canvas');c.replaceChildren();let h=document.createElement('div');h.className='head';const HT={title:'飞鸟集',kicker:pageGroupLabel(),caption:'BIRDS / A COLLECTION OF MOMENTS'};HT.title=page().title||HT.title;HT.kicker=page().kicker||HT.kicker;HT.caption=page().caption||HT.caption;
 h.innerHTML='<div class="title">'+HT.title+'<span style="font-size:14px;letter-spacing:3px;margin-left:30px">'+HT.kicker+'</span></div><div class="caption">'+HT.caption+'</div>';c.append(h);if(!page().birds.length){let e=document.createElement('div');e.className='empty';e.innerHTML='<svg viewBox="0 0 100 60"><path d="M5 40 Q25 0 48 32 Q65 5 95 15 Q70 20 51 46 Q28 21 5 40Z"/></svg><strong>让第一只鸟，落在这里。</strong>'+(preview?'这一页还没有鸟类。':'点击右侧「上传鸟类贴图」开始排版<br>鸟类与页码条可以分别拖动');c.append(e)}for(const b of page().birds){for(const p of ['bird','tag']){let e=document.createElement('div');e.className='item '+(p==='tag'?'tag':'')+(!preview&&selected===b.id&&part===p?' chosen':'');const o=p==='bird'?b:b.tag;Object.assign(e.style,{left:o.x+'px',top:o.y+'px',width:o.w+'px',height:o.h+'px',zIndex:b.z||1});if(p==='bird'){let im=document.createElement('img');im.src=b.src;im.alt=b.name;e.append(im)}else{e.textContent=b.number+'  '+b.name;e.style.fontSize=b.font+'px'}e.setAttribute('role','button');e.tabIndex=0;e.setAttribute('aria-label',b.name+(p==='tag'?'页码':''));e.onkeydown=ev=>{if(ev.key==='Enter')activate(b,p)};e.onclick=()=>{if(preview)activate(b,p)};e.onpointerdown=ev=>drag(ev,b,p,false);if(!preview&&selected===b.id&&part===p){let hand=document.createElement('span');hand.className='handle';hand.onpointerdown=ev=>drag(ev,b,p,true);e.append(hand)}c.append(e)}}let f=document.createElement('div');f.className='folio';f.textContent=String(pi+1).padStart(2,'0')+' / '+String(book.pages.length).padStart(2,'0');c.append(f);$('#pages').replaceChildren();book.pages.forEach((p,i)=>{let btn=document.createElement('button');btn.className=i===pi?'active':'';btn.textContent=String(i+1).padStart(2,'0')+'　目录 · '+p.birds.length+' 只';btn.onclick=()=>go(i);$('#pages').append(btn)});$('#counter').textContent=`${pi+1} / ${book.pages.length}`;$('#pageTitle').textContent='目录 / '+String(pi+1).padStart(2,'0');$('#prev').disabled=pi===0;$('#next').disabled=pi===book.pages.length-1;$('#pageUp').disabled=pi===0;$('#deletePage').disabled=book.pages.length===1;inspect();resize()}
 function activate(b,p){if(!preview){selected=b.id;part=p;render();return}if(!b.url){toast('这只鸟的效果链接还没有填写');return}window.open(b.url,'_blank','noopener')}
 function drag(ev,b,p,size){if(preview)return;ev.preventDefault();ev.stopPropagation();selected=b.id;part=p;render();let o=p==='bird'?b:b.tag,start={...o},x=ev.clientX,y=ev.clientY;const move=e=>{let dx=(e.clientX-x)/scale,dy=(e.clientY-y)/scale;if(size){o.w=Math.max(30,Math.min(1100,start.w+dx));o.h=p==='bird'?o.w*start.h/start.w:Math.max(20,Math.min(300,start.h+dy))}else{o.x=start.x+dx;o.y=start.y+dy}changed();render()};const up=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',up)};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up)}
