@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>苍鹭 · 飞鸟集</title>
   <script src="p5.js"></script>
-  <link rel="stylesheet" type="text/css" href="style.css?v=20261026-1749" />
+  <link rel="stylesheet" type="text/css" href="style.css?v=20261026-1752" />
 </head>
 <body>
   <main class="species-page">
@@ -39,7 +39,7 @@
       function drawTrimmed(src){
         const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);const d=x.getImageData(0,0,c.width,c.height).data;let minX=c.width,minY=c.height,maxX=-1,maxY=-1;for(let yy=0;yy<c.height;yy++){for(let xx=0;xx<c.width;xx++){if(d[(yy*c.width+xx)*4+3]>8){if(xx<minX)minX=xx;if(xx>maxX)maxX=xx;if(yy<minY)minY=yy;if(yy>maxY)maxY=yy}}}if(maxX<minX)return;const w=maxX-minX+1,h=maxY-minY+1;output.width=w;output.height=h;output.getContext('2d').drawImage(c,minX,minY,w,h,0,0,w,h)}catch(e){console.warn('苍鹭透明区域裁切失败',e)}};img.src=src}
       try{if(window.parent&&window.parent!==window){const p=window.parent.document.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');if(p&&p.src){drawTrimmed(p.src);return}}}catch(e){}
-      const frame=document.createElement('iframe');frame.src='../../?heron-art-source=1749';frame.style.cssText='position:fixed;width:1px;height:1px;left:-10000px;top:-10000px;opacity:0;pointer-events:none;border:0';document.body.appendChild(frame);frame.onload=()=>{let tries=0;const scan=()=>{tries++;try{const doc=frame.contentDocument,p=doc&&doc.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');if(p&&p.src){drawTrimmed(p.src);frame.remove();return}const bs=doc?Array.from(doc.querySelectorAll('#pages button')):[];if(bs.length)bs[(tries-1)%bs.length].click();if(tries<12)setTimeout(scan,180);else frame.remove()}catch(e){frame.remove()}};setTimeout(scan,350)}
+      const frame=document.createElement('iframe');frame.src='../../?heron-art-source=1752';frame.style.cssText='position:fixed;width:1px;height:1px;left:-10000px;top:-10000px;opacity:0;pointer-events:none;border:0';document.body.appendChild(frame);frame.onload=()=>{let tries=0;const scan=()=>{tries++;try{const doc=frame.contentDocument,p=doc&&doc.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');if(p&&p.src){drawTrimmed(p.src);frame.remove();return}const bs=doc?Array.from(doc.querySelectorAll('#pages button')):[];if(bs.length)bs[(tries-1)%bs.length].click();if(tries<12)setTimeout(scan,180);else frame.remove()}catch(e){frame.remove()}};setTimeout(scan,350)}
     })();
   </script>
 </body>
