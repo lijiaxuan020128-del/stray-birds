@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <script src="p5.js"></script>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8" />
-  </head>
-  <body>
-    <main>
-    </main>
-    <script src="sketch.js"></script>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>苍鹭 · 飞鸟集</title>
+  <script src="p5.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+  <main class="species-page">
+    <header class="species-head">
+      <div>
+        <div class="eyebrow">FIELD NOTES · 涉禽</div>
+        <h1>苍鹭 <span>Grey Heron</span></h1>
+      </div>
+      <div class="particle-key" aria-label="粒子图例">
+        <span class="particle-dot"></span>
+        <div><strong>一个粒子，一只鸟</strong><small>ONE PARTICLE · ONE BIRD</small></div>
+      </div>
+    </header>
+
+    <section class="observation-frame" aria-label="苍鹭动态观察窗口">
+      <div id="sketchMount"></div>
+    </section>
+
+    <footer class="species-foot">
+      <div class="abstract-note"><span class="particle-dot small"></span><span>画面中的圆点并非装饰，而是对单只苍鹭的抽象表达。</span></div>
+      <p>苍鹭常在浅水、湿地与岸边缓慢活动，个体之间保持一定距离。画面以少量粒子的移动、停留与转向，概括它们相对疏离、从容的活动状态。</p>
+    </footer>
+  </main>
+
+  <script src="sketch.js"></script>
   <script src="../../assets/effect-fit.js"></script>
 </body>
 </html>
