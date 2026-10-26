@@ -2,6 +2,12 @@
   const defaults = [{id:'index',name:'目录'},{id:'species',name:'鸟类'},{id:'about',name:'关于飞鸟集'}];
   const sections = () => Array.isArray(book.sections) ? book.sections : defaults;
   const belongs = p => p.sectionId === undefined ? 'index' : p.sectionId;
+  // 浏览器另存的 HTML 可能含有旧控件；只保留本次创建的有效控件。
+  document.querySelectorAll('.sectionNav, .ambientParticles').forEach(el => el.remove());
+  document.querySelectorAll('.right details.stylePanel').forEach(el => {
+    const title = el.querySelector('summary')?.textContent || '';
+    if (title.includes('栏目') && title.includes('页面归属') && title.includes('背景粒子')) el.remove();
+  });
   const nav = document.createElement('nav');
   nav.className = 'sectionNav'; nav.setAttribute('aria-label','栏目导航');
   document.body.append(nav);
@@ -20,6 +26,8 @@
   const priorRender=render;
   render=function(){
     priorRender();
+    const currentPage=page();
+    const currentPageNumber=book.pages.indexOf(currentPage)+1;
     const t=theme();
     document.querySelector('#canvas').prepend(particles);
     nav.style.color=t.ink;nav.style.background=t.paper;
@@ -34,15 +42,21 @@
       if(belongs(page())===s.id){b.classList.add('current');b.setAttribute('aria-current','page');}
     });
     root.replaceChildren();
-    const label=document.createElement('label');label.className='field';label.textContent='本页所属栏目';
+    const label=document.createElement('label');label.className='field';label.textContent=`第 ${currentPageNumber} 页 · 本页所属栏目`;
     const select=document.createElement('select');select.add(new Option('不归属',''));
     sections().forEach(s=>select.add(new Option(s.name,s.id)));
-    select.value=belongs(page());select.onchange=()=>{page().sectionId=select.value;commit();};
+    select.value=belongs(currentPage);
+    select.onchange=()=>{
+      // 仅接受当前面板的事件，避免翻页后旧控件修改另一页。
+      if (!select.isConnected || page() !== currentPage) return;
+      currentPage.sectionId=select.value;
+      commit();
+    };
     label.append(select);root.append(label);
-    const hint=document.createElement('p');hint.className='hint';hint.textContent='底部栏目跳到该栏目第一张目录页；上一页 / 下一页仍按整本目录顺序翻页。';root.append(hint);
+    const hint=document.createElement('p');hint.className='hint';hint.textContent='上面的归属仅修改当前页。下面的栏目名称为整本书共用，改名会同步显示在所有页面。底部栏目跳到该栏目第一页。';root.append(hint);
     sections().forEach(s=>{
       const row=document.createElement('div');row.className='sectionSetting';root.append(row);
-      field(row,'栏目名称',s.name,'text',value=>{if(!value.trim()){render();return;}book.sections=sections().map(x=>x.id===s.id?{...x,name:value.trim()}:x);commit();});
+      field(row,'栏目名称（整本书共用）',s.name,'text',value=>{if(!value.trim()){render();return;}book.sections=sections().map(x=>x.id===s.id?{...x,name:value.trim()}:x);commit();});
       button(row,'删除',()=>{book.sections=sections().filter(x=>x.id!==s.id);book.pages.forEach(p=>{if(belongs(p)===s.id)p.sectionId='';});commit();});
     });
     button(root,'＋ 新增栏目',()=>{book.sections=[...sections(),{id:uid(),name:'新栏目'}];commit();}).className='wide';
