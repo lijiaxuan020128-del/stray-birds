@@ -53,3 +53,26 @@
   act.insertBefore(rb,saveBtn);act.insertBefore(ub,rb);
   snap();lastSnap=Date.now();
 })();
+
+
+// Preview navigation follows the current book and keeps controls above the footer.
+(function () {
+  const footer = document.querySelector('.sectionNav');
+  if (footer) {
+    const syncFooterHeight = () => document.documentElement.style.setProperty(
+      '--section-nav-height', Math.ceil(footer.getBoundingClientRect().height) + 'px'
+    );
+    new ResizeObserver(syncFooterHeight).observe(footer);
+    syncFooterHeight();
+  }
+  document.addEventListener('keydown', event => {
+    if (!preview || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey ||
+        document.querySelector('dialog[open]') ||
+        event.target.closest?.('input, textarea, select, [contenteditable="true"]')) return;
+    const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    if (!delta) return;
+    event.preventDefault();
+    const destination = pi + delta;
+    if (destination >= 0 && destination < book.pages.length) go(destination);
+  });
+})();
