@@ -27,17 +27,38 @@
   let previousFocus;
   function close(){panel.close();frame.src='about:blank';document.documentElement.style.overflow='';document.body.style.overflow='';previousFocus?.focus()}
   panel.addEventListener('cancel',e=>{e.preventDefault();close()});
+  function equalizeMappingGaps(doc){
+    const labels=[...doc.querySelectorAll('.mapping-row .mapping-cn')];
+    if(labels.length<3)return;
+    labels.forEach(el=>el.style.transform='');
+    const first=labels[0].getBoundingClientRect();
+    const middle=labels[1].getBoundingClientRect();
+    const last=labels[2].getBoundingClientRect();
+    const targetCenter=(first.right+last.left)/2;
+    const currentCenter=(middle.left+middle.right)/2;
+    labels[1].style.transform=`translateX(${targetCenter-currentCenter}px)`;
+    const english=[...doc.querySelectorAll('.mapping-row .mapping-en')];
+    if(english.length>=3){
+      english.forEach(el=>el.style.transform='');
+      const a=english[0].getBoundingClientRect(),b=english[1].getBoundingClientRect(),c=english[2].getBoundingClientRect();
+      const target=(a.right+c.left)/2;
+      const current=(b.left+b.right)/2;
+      english[1].style.transform=`translateX(${target-current}px)`;
+    }
+  }
   frame.addEventListener('load',()=>{
     if(frame.src==='about:blank')return;
     try{
       const doc=frame.contentDocument;
       doc?.querySelectorAll('#full, #pageFullscreen, .effect-fullscreen').forEach(el=>el.remove());
       if(frame.src.includes('/birds/view/')){
-        const style=doc.createElement('style');
-        style.textContent='.mapping-row{position:relative}.mapping-unit:first-child{transform:translateX(15px)}.mapping-unit:nth-child(3){transform:translateX(24px)}';
-        doc.head.append(style);
+        requestAnimationFrame(()=>equalizeMappingGaps(doc));
+        setTimeout(()=>equalizeMappingGaps(doc),120);
       }
     }catch{}
+  });
+  window.addEventListener('resize',()=>{
+    try{if(frame.src.includes('/birds/view/')&&frame.contentDocument)equalizeMappingGaps(frame.contentDocument)}catch{}
   });
   window.addEventListener('message',e=>{
     if(e.source!==frame.contentWindow||!e.data)return;
