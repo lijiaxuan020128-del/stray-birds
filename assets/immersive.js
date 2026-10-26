@@ -7,65 +7,7 @@
   frame.title = '鸟类动态效果';
   frame.allow = 'fullscreen';
   frame.style.cssText = 'display:block;width:100%;height:100%;border:0';
-
-  const controls = document.createElement('div');
-  controls.setAttribute('aria-label', '展示控制');
-  controls.style.cssText = [
-    'position:absolute',
-    'right:28px',
-    'bottom:22px',
-    'z-index:20',
-    'display:flex',
-    'align-items:center',
-    'gap:14px',
-    'padding:7px 11px',
-    'border:1px solid rgba(244,239,220,.16)',
-    'background:rgba(39,37,46,.72)',
-    'backdrop-filter:blur(8px)',
-    '-webkit-backdrop-filter:blur(8px)',
-    'box-shadow:0 5px 18px rgba(0,0,0,.12)',
-    'font-family:Arial,"Microsoft Yahei",sans-serif',
-    'letter-spacing:1.4px'
-  ].join(';');
-
-  function styleControl(button) {
-    button.style.cssText = [
-      'appearance:none',
-      'border:0',
-      'border-radius:0',
-      'padding:2px 0',
-      'margin:0',
-      'background:transparent',
-      'color:rgb(244,239,220)',
-      'font:10px Arial,"Microsoft Yahei",sans-serif',
-      'letter-spacing:1.4px',
-      'line-height:1.5',
-      'opacity:.58',
-      'cursor:pointer',
-      'white-space:nowrap'
-    ].join(';');
-    button.addEventListener('mouseenter', () => button.style.opacity = '1');
-    button.addEventListener('mouseleave', () => button.style.opacity = '.58');
-    button.addEventListener('focus', () => button.style.opacity = '1');
-    button.addEventListener('blur', () => button.style.opacity = '.58');
-  }
-
-  const back = document.createElement('button');
-  back.textContent = '← 目录';
-  back.title = '返回目录';
-  styleControl(back);
-
-  const divider = document.createElement('span');
-  divider.setAttribute('aria-hidden', 'true');
-  divider.style.cssText = 'display:block;width:1px;height:11px;background:rgba(244,239,220,.16)';
-
-  const full = document.createElement('button');
-  full.textContent = '全屏 ↗';
-  full.title = '全屏观看';
-  styleControl(full);
-
-  controls.append(back, divider, full);
-  panel.append(frame, controls);
+  panel.append(frame);
   document.body.append(panel);
 
   const localBirdPages = [
@@ -94,26 +36,29 @@
     if (document.fullscreenElement === panel) await document.exitFullscreen().catch(() => {});
     panel.close();
     frame.src = 'about:blank';
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
     previousFocus?.focus();
   }
 
-  back.onclick = close;
   panel.addEventListener('cancel', event => {
     event.preventDefault();
     close();
   });
 
-  full.onclick = async () => {
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await panel.requestFullscreen();
-    } catch {
-      toast('此浏览器暂不支持全屏，仍可在窗口内观看');
+  window.addEventListener('message', async event => {
+    if (event.source !== frame.contentWindow || !event.data) return;
+    if (event.data.type === 'stray-birds-close') {
+      close();
     }
-  };
-
-  document.addEventListener('fullscreenchange', () => {
-    full.textContent = document.fullscreenElement ? '退出全屏' : '全屏 ↗';
+    if (event.data.type === 'stray-birds-fullscreen') {
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else await panel.requestFullscreen();
+      } catch {
+        toast('此浏览器暂不支持全屏，仍可在窗口内观看');
+      }
+    }
   });
 
   function open(url) {
@@ -130,7 +75,6 @@
     previousFocus = document.activeElement;
     frame.src = target.href;
     panel.showModal();
-    back.focus();
   }
 
   function builtInEffect(name) {
