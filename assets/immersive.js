@@ -16,24 +16,24 @@
   panel.append(frame, controls);
   document.body.append(panel);
 
-  const effectPages = [
+  const localBirdPages = [
+    ['苍鹭', 'birds/heron/'],
+    ['麻雀', 'birds/sparrow/'],
+    ['普通翠鸟', 'birds/kingfisher/'],
+    ['普通雨燕', 'birds/swift/'],
+    ['太平鸟', 'birds/waxwing/'],
+    ['小䴙䴘', 'birds/little-grebe/'],
+    ['针尾沙锥', 'birds/pin-tailed-snipe/'],
+    ['震旦鸦雀', 'birds/reed-parrotbill/'],
     ['珠颈斑鸠', 'birds/spotted-dove-kestrel/'],
     ['红隼', 'birds/spotted-dove-kestrel/'],
-    ['普通翠鸟', 'birds/kingfisher/'],
-    ['普通雨燕', 'birds/common-swift/'],
-    ['大斑啄木鸟', 'birds/great-spotted-woodpecker/'],
-    ['震旦鸦雀', 'birds/reed-parrotbill/'],
-    ['针尾沙锥', 'birds/pintail-snipe/'],
-    ['小䴙䴘', 'birds/little-grebe/'],
     ['白鹡鸰', 'birds/white-wagtail/'],
-    ['黑水鸡', 'birds/common-moorhen/'],
     ['斑头雁', 'birds/bar-headed-goose/'],
-    ['太平鸟', 'birds/bohemian-waxwing/'],
-    ['麻雀', 'birds/sparrow/'],
+    ['大斑啄木鸟', 'birds/great-spotted-woodpecker/'],
     ['戴胜', 'birds/hoopoe/'],
+    ['黑水鸡', 'birds/moorhen/'],
     ['鸿雁', 'birds/swan-goose/'],
-    ['家燕', 'birds/barn-swallow/'],
-    ['苍鹭', 'birds/heron/']
+    ['家燕', 'birds/barn-swallow/']
   ];
 
   let previousFocus, previousOverflow;
@@ -84,7 +84,7 @@
   }
 
   function builtInEffect(name) {
-    const item = effectPages.find(([birdName]) => name.includes(birdName));
+    const item = localBirdPages.find(([birdName]) => name.includes(birdName));
     return item ? item[1] : '';
   }
 
