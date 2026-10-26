@@ -28,37 +28,32 @@
   function close(){panel.close();frame.src='about:blank';document.documentElement.style.overflow='';document.body.style.overflow='';previousFocus?.focus()}
   panel.addEventListener('cancel',e=>{e.preventDefault();close()});
   function equalizeMappingGaps(doc){
-    const labels=[...doc.querySelectorAll('.mapping-row .mapping-cn')];
-    if(labels.length<3)return;
-    labels.forEach(el=>el.style.transform='');
-    const first=labels[0].getBoundingClientRect();
-    const middle=labels[1].getBoundingClientRect();
-    const last=labels[2].getBoundingClientRect();
-    const targetCenter=(first.right+last.left)/2;
-    const currentCenter=(middle.left+middle.right)/2;
-    labels[1].style.transform=`translateX(${targetCenter-currentCenter}px)`;
-    const english=[...doc.querySelectorAll('.mapping-row .mapping-en')];
-    if(english.length>=3){
-      english.forEach(el=>el.style.transform='');
-      const a=english[0].getBoundingClientRect(),b=english[1].getBoundingClientRect(),c=english[2].getBoundingClientRect();
-      const target=(a.right+c.left)/2;
-      const current=(b.left+b.right)/2;
-      english[1].style.transform=`translateX(${target-current}px)`;
-    }
+    const cn=[...doc.querySelectorAll('.mapping-row .mapping-cn')];
+    const en=[...doc.querySelectorAll('.mapping-row .mapping-en')];
+    if(cn.length<3||en.length<3)return;
+    [...cn,...en].forEach(el=>el.style.transform='');
+    const cnLeft=cn[0].getBoundingClientRect(),enLeft=en[0].getBoundingClientRect();
+    const cnRight=cn[2].getBoundingClientRect(),enRight=en[2].getBoundingClientRect();
+    const leftTextEdge=Math.max(cnLeft.right,enLeft.right);
+    const rightTextEdge=Math.min(cnRight.left,enRight.left);
+    const targetAxis=(leftTextEdge+rightTextEdge)/2;
+    const cnMiddle=cn[1].getBoundingClientRect();
+    const enMiddle=en[1].getBoundingClientRect();
+    cn[1].style.transform=`translateX(${targetAxis-(cnMiddle.left+cnMiddle.right)/2}px)`;
+    en[1].style.transform=`translateX(${targetAxis-(enMiddle.left+enMiddle.right)/2}px)`;
   }
   frame.addEventListener('load',()=>{
     if(frame.src==='about:blank')return;
     try{
       const doc=frame.contentDocument;
       doc?.querySelectorAll('#full, #pageFullscreen, .effect-fullscreen').forEach(el=>el.remove());
-      if(frame.src.includes('/birds/view/')){
-        requestAnimationFrame(()=>equalizeMappingGaps(doc));
-        setTimeout(()=>equalizeMappingGaps(doc),120);
-      }
+      requestAnimationFrame(()=>equalizeMappingGaps(doc));
+      setTimeout(()=>equalizeMappingGaps(doc),120);
+      setTimeout(()=>equalizeMappingGaps(doc),420);
     }catch{}
   });
   window.addEventListener('resize',()=>{
-    try{if(frame.src.includes('/birds/view/')&&frame.contentDocument)equalizeMappingGaps(frame.contentDocument)}catch{}
+    try{if(frame.contentDocument)equalizeMappingGaps(frame.contentDocument)}catch{}
   });
   window.addEventListener('message',e=>{
     if(e.source!==frame.contentWindow||!e.data)return;
