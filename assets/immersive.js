@@ -36,13 +36,12 @@
     ['家燕', 'birds/barn-swallow/']
   ];
 
-  let previousFocus, previousOverflow;
+  let previousFocus;
 
   async function close() {
     if (document.fullscreenElement === panel) await document.exitFullscreen().catch(() => {});
     panel.close();
     frame.src = 'about:blank';
-    document.body.style.overflow = previousOverflow;
     previousFocus?.focus();
   }
 
@@ -66,6 +65,7 @@
   });
 
   function open(url) {
+    if (panel.open) return;
     const target = new URL(url, location.href);
     if (!['http:', 'https:'].includes(target.protocol)) {
       toast('效果链接格式不正确');
@@ -76,10 +76,8 @@
       return;
     }
     previousFocus = document.activeElement;
-    previousOverflow = document.body.style.overflow;
     frame.src = target.href;
     panel.showModal();
-    document.body.style.overflow = 'hidden';
     back.focus();
   }
 

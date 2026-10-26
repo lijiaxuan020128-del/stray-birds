@@ -66,6 +66,8 @@
     const hit=findHitAt(e.clientX,e.clientY);
     if(!hit){e.stopPropagation();return;}
     if(hit.el!==el){e.stopPropagation();return;}
+    e.preventDefault();
+    e.stopImmediatePropagation();
     activate(hit.b,hit.part);
   },true);
 })();
