@@ -19,13 +19,12 @@
 
     <section class="species-info">
       <div class="identity-card">
-        <div class="bird-art-wrap"><img id="heronArt" alt="苍鹭插画" /></div>
-        <div class="translation">
-          <div class="real-bird-label">苍鹭</div>
-          <div class="translation-line"><span></span></div>
+        <div class="mapping-row">
+          <div class="bird-art-wrap"><img id="heronArt" alt="苍鹭插画" /></div>
+          <div class="translation-line" aria-hidden="true"><span></span></div>
           <div class="particle-sample" aria-label="网页中苍鹭粒子示意"></div>
-          <div class="particle-copy"><strong>一个粒子 = 一只苍鹭</strong><small>ONE PARTICLE · ONE BIRD</small></div>
         </div>
+        <div class="particle-copy"><strong>一个粒子 = 一只苍鹭</strong><small>ONE PARTICLE · ONE BIRD</small></div>
       </div>
 
       <article class="info-block">
@@ -64,9 +63,6 @@
 
     (function loadHeronArtwork(){
       const target = document.getElementById('heronArt');
-
-      // 从目录点击苍鹭进入沉浸页时，父页面里已经存在这张插画。
-      // GitHub Pages 同源，因此直接读取父页面的 data URL 最稳定，也不需要重新解析超大的目录文件。
       try {
         if (window.parent && window.parent !== window) {
           const parentDoc = window.parent.document;
@@ -80,7 +76,6 @@
         console.warn('无法直接读取父目录中的苍鹭插画，改用目录扫描：', error);
       }
 
-      // 若用户直接打开苍鹭页面，则隐藏运行一次目录，逐页寻找苍鹭作为备用方案。
       const frame = document.createElement('iframe');
       frame.src = '../../?heron-art-source=1';
       frame.setAttribute('aria-hidden', 'true');
@@ -100,18 +95,13 @@
           try {
             const doc = frame.contentDocument;
             if (!doc) throw new Error('目录文档不可访问');
-
             const heron = doc.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');
             if (heron && heron.src) {
               finish(heron.src);
               return;
             }
-
             const pageButtons = Array.from(doc.querySelectorAll('#pages button'));
-            if (pageButtons.length) {
-              pageButtons[(tries - 1) % pageButtons.length].click();
-            }
-
+            if (pageButtons.length) pageButtons[(tries - 1) % pageButtons.length].click();
             if (tries < 12) setTimeout(scan, 180);
             else finish('');
           } catch (error) {
