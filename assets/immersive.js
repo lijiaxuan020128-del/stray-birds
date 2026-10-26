@@ -11,7 +11,7 @@
   document.body.append(panel);
 
   const localBirdPages = [
-    ['苍鹭', 'birds/heron/'],
+    ['苍鹭', 'birds/heron/?v=20261026-1659'],
     ['麻雀', 'birds/sparrow/'],
     ['普通翠鸟', 'birds/kingfisher/'],
     ['普通雨燕', 'birds/swift/'],
@@ -48,9 +48,7 @@
 
   window.addEventListener('message', async event => {
     if (event.source !== frame.contentWindow || !event.data) return;
-    if (event.data.type === 'stray-birds-close') {
-      close();
-    }
+    if (event.data.type === 'stray-birds-close') close();
     if (event.data.type === 'stray-birds-fullscreen') {
       try {
         if (document.fullscreenElement) await document.exitFullscreen();
