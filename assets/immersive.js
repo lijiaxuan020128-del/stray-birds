@@ -32,6 +32,11 @@
     try{
       const doc=frame.contentDocument;
       doc?.querySelectorAll('#full, #pageFullscreen, .effect-fullscreen').forEach(el=>el.remove());
+      if(frame.src.includes('/birds/view/')){
+        const style=doc.createElement('style');
+        style.textContent='.mapping-row{position:relative}.mapping-unit:first-child{transform:translateX(15px)}.mapping-unit:nth-child(3){transform:translateX(24px)}';
+        doc.head.append(style);
+      }
     }catch{}
   });
   window.addEventListener('message',e=>{
