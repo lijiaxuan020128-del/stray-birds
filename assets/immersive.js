@@ -69,4 +69,9 @@
   function builtInEffect(name){const item=localBirdPages.find(([birdName])=>name.includes(birdName));return item?item[1]:''}
   const originalActivate=activate;
   activate=function(b,part){if(!preview)return originalActivate(b,part);const builtIn=builtInEffect(b.name);if(builtIn)return open(builtIn);if(b.url)return open(b.url);toast('这只鸟的效果链接还没有填写')};
+
+  // 目录粒子原型先只用于苍鹭。独立文件便于确认效果后再扩展到其他鸟类。
+  const particleScript=document.createElement('script');
+  particleScript.src='assets/heron-catalog-particles.js?v=20261027-1';
+  document.head.append(particleScript);
 })();
