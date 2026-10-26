@@ -52,13 +52,8 @@
       setTimeout(()=>equalizeMappingGaps(doc),420);
     }catch{}
   });
-  window.addEventListener('resize',()=>{
-    try{if(frame.contentDocument)equalizeMappingGaps(frame.contentDocument)}catch{}
-  });
-  window.addEventListener('message',e=>{
-    if(e.source!==frame.contentWindow||!e.data)return;
-    if(e.data.type==='stray-birds-close')close();
-  });
+  window.addEventListener('resize',()=>{try{if(frame.contentDocument)equalizeMappingGaps(frame.contentDocument)}catch{}});
+  window.addEventListener('message',e=>{if(e.source!==frame.contentWindow||!e.data)return;if(e.data.type==='stray-birds-close')close()});
   function open(url){
     if(panel.open)return;
     const target=new URL(url,location.href);
@@ -70,8 +65,7 @@
   const originalActivate=activate;
   activate=function(b,part){if(!preview)return originalActivate(b,part);const builtIn=builtInEffect(b.name);if(builtIn)return open(builtIn);if(b.url)return open(b.url);toast('这只鸟的效果链接还没有填写')};
 
-  // 目录粒子原型先只用于苍鹭。独立文件便于确认效果后再扩展到其他鸟类。
   const particleScript=document.createElement('script');
-  particleScript.src='assets/heron-catalog-particles.js?v=20261027-1';
+  particleScript.src='assets/heron-catalog-particles.js?v=20261027-2';
   document.head.append(particleScript);
 })();
