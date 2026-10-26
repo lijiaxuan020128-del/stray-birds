@@ -46,18 +46,34 @@
       function align(){
         const units=Array.from(document.querySelectorAll('.mapping-unit'));
         if(units.length!==3)return;
-        const visuals=[document.getElementById('heronTrimmed'),units[1].querySelector('.translation-line'),units[2].querySelector('.particle-sample')];
-        const centers=visuals.map((visual,index)=>{if(!visual)return NaN;const r=visual.getBoundingClientRect();if(index===0&&Number.isFinite(window.heronVisibleCenterRatio))return r.left+r.width*window.heronVisibleCenterRatio;return r.left+r.width/2});
-        if(centers.some(v=>!Number.isFinite(v)))return;
-        const leftX=centers[0],rightX=centers[2],middleX=(leftX+rightX)/2;
-        [leftX,middleX,rightX].forEach((targetX,index)=>{
-          const unit=units[index],cn=unit.querySelector('.mapping-cn'),en=unit.querySelector('.mapping-en');
-          if(!cn||!en)return;
-          cn.style.transform='';en.style.transform='';
-          const cr=cn.getBoundingClientRect();
+        const cn=units.map(unit=>unit.querySelector('.mapping-cn'));
+        const en=units.map(unit=>unit.querySelector('.mapping-en'));
+        if(cn.some(v=>!v)||en.some(v=>!v))return;
+        [...cn,...en].forEach(el=>el.style.transform='');
+
+        const bird=document.getElementById('heronTrimmed');
+        const particle=units[2].querySelector('.particle-sample');
+        if(!bird||!particle)return;
+        const br=bird.getBoundingClientRect(),pr=particle.getBoundingClientRect();
+        const leftCenter=Number.isFinite(window.heronVisibleCenterRatio)?br.left+br.width*window.heronVisibleCenterRatio:br.left+br.width/2;
+        const rightCenter=pr.left+pr.width/2;
+
+        const widths=cn.map(el=>el.getBoundingClientRect().width);
+        const leftEdge=leftCenter-widths[0]/2;
+        const rightEdge=rightCenter+widths[2]/2;
+        const available=rightEdge-leftEdge-widths[0]-widths[1]-widths[2];
+        const gap=Math.max(0,available/2);
+        const targetCenters=[
+          leftEdge+widths[0]/2,
+          leftEdge+widths[0]+gap+widths[1]/2,
+          leftEdge+widths[0]+gap+widths[1]+gap+widths[2]/2
+        ];
+
+        targetCenters.forEach((targetX,index)=>{
+          const cr=cn[index].getBoundingClientRect();
           const delta=targetX-(cr.left+cr.width/2);
-          cn.style.transform=`translateX(${delta}px)`;
-          en.style.transform=`translateX(${delta}px)`;
+          cn[index].style.transform=`translateX(${delta}px)`;
+          en[index].style.transform=`translateX(${delta}px)`;
         });
       }
       window.alignHeronMapping=align;
