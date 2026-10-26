@@ -2,6 +2,32 @@
   const defaults = [{id:'index',name:'目录'},{id:'species',name:'鸟类'},{id:'about',name:'关于飞鸟集'}];
   const sections = () => Array.isArray(book.sections) ? book.sections : defaults;
   const belongs = p => p.sectionId === undefined ? 'index' : p.sectionId;
+  const sectionName = p => {
+    const id = belongs(p);
+    const found = sections().find(s => s.id === id);
+    return found ? found.name : '目录';
+  };
+  function syncCatalogSectionLabel(p){
+    const name = sectionName(p);
+    const head = document.querySelector('#canvas .head');
+    if(!head) return;
+    const catalogSmall = head.querySelector('.catalogContents small');
+    if(catalogSmall){
+      catalogSmall.textContent = name;
+      return;
+    }
+    const title = head.querySelector('.title');
+    if(title){
+      let label = title.querySelector('.pageSectionLabel');
+      if(!label){
+        label = document.createElement('span');
+        label.className = 'pageSectionLabel';
+        label.style.cssText = 'font-size:14px;letter-spacing:3px;margin-left:30px';
+        title.append(label);
+      }
+      label.textContent = name;
+    }
+  }
   // 浏览器另存的 HTML 可能含有旧控件；只保留本次创建的有效控件。
   document.querySelectorAll('.sectionNav, .ambientParticles').forEach(el => el.remove());
   document.querySelectorAll('.right details.stylePanel').forEach(el => {
@@ -29,6 +55,7 @@
     const currentPage=page();
     const currentPageNumber=book.pages.indexOf(currentPage)+1;
     const t=theme();
+    syncCatalogSectionLabel(currentPage);
     document.querySelector('#canvas').prepend(particles);
     nav.style.color=t.ink;nav.style.background=t.paper;
     nav.style.borderColor=t.muted;
