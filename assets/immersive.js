@@ -12,19 +12,20 @@
   controls.setAttribute('aria-label', '展示控制');
   controls.style.cssText = [
     'position:absolute',
-    'top:24px',
-    'right:26px',
+    'right:28px',
+    'bottom:22px',
     'z-index:20',
     'display:flex',
     'align-items:center',
-    'gap:18px',
-    'padding:8px 13px',
-    'border:1px solid rgba(244,239,220,.18)',
-    'background:rgba(39,37,46,.78)',
+    'gap:14px',
+    'padding:7px 11px',
+    'border:1px solid rgba(244,239,220,.16)',
+    'background:rgba(39,37,46,.72)',
     'backdrop-filter:blur(8px)',
     '-webkit-backdrop-filter:blur(8px)',
+    'box-shadow:0 5px 18px rgba(0,0,0,.12)',
     'font-family:Arial,"Microsoft Yahei",sans-serif',
-    'letter-spacing:1.5px'
+    'letter-spacing:1.4px'
   ].join(';');
 
   function styleControl(button) {
@@ -32,21 +33,21 @@
       'appearance:none',
       'border:0',
       'border-radius:0',
-      'padding:3px 0',
+      'padding:2px 0',
       'margin:0',
       'background:transparent',
       'color:rgb(244,239,220)',
-      'font:11px Arial,"Microsoft Yahei",sans-serif',
-      'letter-spacing:1.5px',
-      'line-height:1.4',
-      'opacity:.68',
+      'font:10px Arial,"Microsoft Yahei",sans-serif',
+      'letter-spacing:1.4px',
+      'line-height:1.5',
+      'opacity:.58',
       'cursor:pointer',
       'white-space:nowrap'
     ].join(';');
     button.addEventListener('mouseenter', () => button.style.opacity = '1');
-    button.addEventListener('mouseleave', () => button.style.opacity = '.68');
+    button.addEventListener('mouseleave', () => button.style.opacity = '.58');
     button.addEventListener('focus', () => button.style.opacity = '1');
-    button.addEventListener('blur', () => button.style.opacity = '.68');
+    button.addEventListener('blur', () => button.style.opacity = '.58');
   }
 
   const back = document.createElement('button');
@@ -56,7 +57,7 @@
 
   const divider = document.createElement('span');
   divider.setAttribute('aria-hidden', 'true');
-  divider.style.cssText = 'display:block;width:1px;height:13px;background:rgba(244,239,220,.18)';
+  divider.style.cssText = 'display:block;width:1px;height:11px;background:rgba(244,239,220,.16)';
 
   const full = document.createElement('button');
   full.textContent = '全屏 ↗';
