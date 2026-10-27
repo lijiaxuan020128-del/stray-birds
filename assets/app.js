@@ -19,7 +19,24 @@ function pageGroupLabel(){
 }
 function toast(t){let e=document.createElement('div');e.className='toast';e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),2600)}
 function changed(){dirty=true;$('#status').textContent='有未保存的修改';}
-function resize(){scale=$('#frame').clientWidth/1200;$('#canvas').style.transform=`scale(${scale})`;$('#frame').style.height=760*scale+'px'}new ResizeObserver(resize).observe($('#frame'));
+function resize(){
+  const frame=$('#frame'),canvas=$('#canvas');
+  if(preview){
+    // Compute numeric scale in JS; CSS length/length division is not portable.
+    const availableWidth=Math.max(1,document.documentElement.clientWidth-(innerWidth<=900?24:48));
+    const availableHeight=Math.max(1,innerHeight-116);
+    scale=Math.min(1,availableWidth/1200,availableHeight/760);
+    frame.style.setProperty('--preview-scale',String(scale));
+    frame.style.setProperty('--preview-width',1200*scale+'px');
+    frame.style.setProperty('--preview-height',760*scale+'px');
+  }else{
+    scale=Math.max(1,frame.clientWidth)/1200;
+  }
+  canvas.style.transform='scale('+scale+')';
+  frame.style.height=760*scale+'px';
+}
+new ResizeObserver(resize).observe($('#frame'));
+window.addEventListener('resize',resize);
 function render(){const c=$('#canvas');c.replaceChildren();let h=document.createElement('div');h.className='head';const HT={title:'飞鸟集',kicker:pageGroupLabel(),caption:'BIRDS / A COLLECTION OF MOMENTS'};HT.title=page().title||HT.title;HT.caption=page().caption||HT.caption;
 h.innerHTML='<div style="font-size:11px;letter-spacing:4px;color:#87907f;margin:0 0 16px">FIELD NOTES / 飞鸟集</div><div class="title">'+HT.title+'<span style="font-size:14px;letter-spacing:3px;margin-left:30px">'+HT.kicker+'</span></div><div class="caption">'+HT.caption+'</div>';c.append(h);if(!page().birds.length){let e=document.createElement('div');e.className='empty';e.innerHTML='<svg viewBox="0 0 100 60"><path d="M5 40 Q25 0 48 32 Q65 5 95 15 Q70 20 51 46 Q28 21 5 40Z"/></svg><strong>让第一只鸟，落在这里。</strong>'+(preview?'这一页还没有鸟类。':'点击右侧「上传鸟类贴图」开始排版<br>鸟类与页码条可以分别拖动');c.append(e)}for(const b of page().birds){for(const p of ['bird','tag']){let e=document.createElement('div');e.className='item '+(p==='tag'?'tag':'')+(!preview&&selected===b.id&&part===p?' chosen':'');const o=p==='bird'?b:b.tag;Object.assign(e.style,{left:o.x+'px',top:o.y+'px',width:o.w+'px',height:o.h+'px',zIndex:b.z||1});if(p==='bird'){let im=document.createElement('img');im.src=b.src;im.alt=b.name;e.append(im)}else{e.textContent=b.number+'  '+b.name;e.style.fontSize=b.font+'px'}e.setAttribute('role','button');e.tabIndex=0;e.setAttribute('aria-label',b.name+(p==='tag'?'页码':''));e.onkeydown=ev=>{if(ev.key==='Enter')activate(b,p)};e.onclick=()=>{if(preview)activate(b,p)};e.onpointerdown=ev=>drag(ev,b,p,false);if(!preview&&selected===b.id&&part===p){let hand=document.createElement('span');hand.className='handle';hand.onpointerdown=ev=>drag(ev,b,p,true);e.append(hand)}c.append(e)}}let f=document.createElement('div');f.className='folio';f.textContent=String(pi+1).padStart(2,'0')+' / '+String(book.pages.length).padStart(2,'0');c.append(f);$('#pages').replaceChildren();book.pages.forEach((p,i)=>{let btn=document.createElement('button');btn.className=i===pi?'active':'';btn.textContent=String(i+1).padStart(2,'0')+'　目录 · '+p.birds.length+' 只';btn.onclick=()=>go(i);$('#pages').append(btn)});$('#counter').textContent=`${pi+1} / ${book.pages.length}`;$('#pageTitle').textContent='目录 / '+String(pi+1).padStart(2,'0');$('#prev').disabled=pi===0;$('#next').disabled=pi===book.pages.length-1;$('#pageUp').disabled=pi===0;$('#deletePage').disabled=book.pages.length===1;inspect();resize()}
 function activate(b,p){if(!preview){selected=b.id;part=p;render();return}if(!b.url){toast('这只鸟的效果链接还没有填写');return}window.open(b.url,'_blank','noopener')}
