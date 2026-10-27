@@ -5,13 +5,13 @@ const key='stray-birds-cover-v2',embedded=new URLSearchParams(location.search).h
 let cfg={...defaults};try{Object.assign(cfg,JSON.parse(localStorage.getItem(key)||'{}'));}catch{}
 const $=id=>document.getElementById(id),canvas=$('sky'),ctx=canvas.getContext('2d');let w=innerWidth,h=innerHeight,points=[],time=0,last=0,pointer={x:w*.65,y:h*.6,active:false},paused=false,anchor={x:w*.65,y:h*.6},vaX=0,vaY=0,trail=[],lenCur=140,lastSX=w*.65,lastSY=h*.6;
 function normalize(){for(const [k,min,max] of [['size',1,12],['count',12,180],['speed',.3,2],['interval',5,30],['birdSize',4,24],['titleSize',40,160],['titleX',15,85],['titleY',20,75],['spacing',.4,2.5]])cfg[k]=Math.max(min,Math.min(max,Number(cfg[k])||defaults[k]));const sv=Number(cfg.scatter);cfg.scatter=Math.max(0,Math.min(2.5,Number.isFinite(sv)?sv:defaults.scatter));cfg.count=Math.round(cfg.count);}
-function seed(){points=Array.from({length:cfg.count},(_,i)=>{const t=Math.sqrt((i+.5)/cfg.count),ph=i*2.39996+Math.random()*.6;return{x:anchor.x+(Math.random()-.5)*200,y:anchor.y+(Math.random()-.5)*160,vx:0,vy:0,phase:ph,slot:t,orb:9+t*30,follow:.22+t*.78,ang:.3+Math.random()*.42,breathe:.13+Math.random()*.15,bf:.3+Math.random()*.5,wob:Math.random()*6.283,jx:Math.random()*2-1,jy:Math.random()*2-1,tail:[]};});}
+function seed(){points=Array.from({length:cfg.count},(_,i)=>{const t=Math.sqrt((i+.5)/cfg.count),ph=i*2.39996+Math.random()*.6;return{x:anchor.x+(Math.random()-.5)*200,y:anchor.y+(Math.random()-.5)*160,vx:0,vy:0,phase:ph,slot:t,orb:9+t*30,follow:.8-.56*t,ang:.3+Math.random()*.42,breathe:.13+Math.random()*.15,bf:.3+Math.random()*.5,wob:Math.random()*6.283,jx:Math.random()*2-1,jy:Math.random()*2-1,tail:[]};});}
 function sync(){normalize();for(const k of ['size','count','speed','interval','spacing','scatter']){$(k).value=cfg[k];$(k+'Out').textContent=cfg[k]+(k==='interval'?' 秒':k==='size'?' px':'');}$('passing').checked=cfg.passing;$('pause').textContent=paused?'继续运动':'暂停运动';document.querySelector('h1').textContent=cfg.title;document.querySelector('.english').textContent=cfg.english;document.querySelector('main p').textContent=cfg.tagline;document.documentElement.style.setProperty('--paper',cfg.paper);document.documentElement.style.setProperty('--ink',cfg.ink);const main=document.querySelector('main');main.style.left=cfg.titleX+'%';main.style.top=cfg.titleY+'%';document.querySelector('h1').style.fontSize=`clamp(40px,${cfg.titleSize/12}vw,${cfg.titleSize}px)`;}
 function resize(){w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);}
 function tick(now){const dt=Math.min((now-last)/1000||0,.033);last=now;ctx.clearRect(0,0,w,h);if(!paused&&!document.hidden)time+=dt;const target=pointer.active?pointer:{x:w*(.5+.26*Math.cos(time*.18)),y:h*(.52+.22*Math.sin(time*.24))};
 /* 锚点用加速度受限的转向力追踪指针：急停后靠惯性滑翔再渐进减速，绝无瞬间拽动 */
 if(!paused&&!document.hidden){
- const stiff=3.4+1.6*cfg.speed,vmax=620+680*cfg.speed,amax=(1500+1300*cfg.speed)*dt;
+ const stiff=4.6+2.2*cfg.speed,vmax=850+750*cfg.speed,amax=(6000+5000*cfg.speed)*dt;
  let dvx=(target.x-anchor.x)*stiff,dvy=(target.y-anchor.y)*stiff;const dvl=Math.hypot(dvx,dvy);
  if(dvl>vmax){dvx*=vmax/dvl;dvy*=vmax/dvl;}
  let ax=dvx-vaX,ay=dvy-vaY;const al=Math.hypot(ax,ay);
@@ -23,7 +23,7 @@ if(!paused&&!document.hidden){
 while(trail.length&&time-trail[0].t>1.6)trail.shift();
 /* 队长独立缓动：展开快、收拢慢，落定后飘带缓缓缩回而不是骤缩 */
 const vspd=Math.hypot(vaX,vaY),gap=cfg.spacing,scat=cfg.scatter;
-const wantLen=Math.min(w*.62,(60+Math.min(460,vspd*1.25))*gap);
+const wantLen=Math.min(w*.62,(52+Math.min(430,vspd*1.1))*gap);
 lenCur+=(wantLen-lenCur)*(1-Math.exp(-dt*(wantLen>lenCur?3.2:.85)));
 const len=lenCur;
 /* 队伍沿锚点最近 1.6 秒走过的路径排开：路径是弯的，队形就是弯的飘带 */
@@ -43,15 +43,15 @@ for(const p of points){if(!paused&&!document.hidden){
  const wobY=(Math.sin(time*.62+p.wob*2.1)*7+Math.cos(p.x*.009-time*.5+p.wob)*5+Math.cos(time*.44+p.wob*.7)*p.jy*40)*scat;
  const tx=d.x-d.ty*Math.cos(a)*orb+d.tx*Math.sin(a)*orb*.72+wobX;
  const ty=d.y+d.tx*Math.cos(a)*orb+d.ty*Math.sin(a)*orb*.72+wobY;
- /* 外圈粒子滞后更多：鸟群像流体一样被拉扯变形，而不是刚性队列 */
- const k=1-Math.exp(-dt*(1.3+3.4*p.follow)*cfg.speed);
+ /* 队头贴得最紧、队尾滞后更多：头部咬住指针，尾部自然拖成流带 */
+ const k=1-Math.exp(-dt*(1.6+4.0*p.follow)*cfg.speed);
  const nx=p.x+(tx-p.x)*k,ny=p.y+(ty-p.y)*k;p.vx=nx-p.x;p.vy=ny-p.y;p.x=nx;p.y=ny;
  p.tail.push(p.x,p.y);if(p.tail.length>14)p.tail.splice(0,2);}
  const n=p.tail.length/2;
  for(let i=1;i<n;i++){const t=i/n;ctx.globalAlpha=.55*t*t;ctx.lineWidth=Math.max(.6,cfg.size*(.3+.6*t));ctx.beginPath();ctx.moveTo(p.tail[2*i-2],p.tail[2*i-1]);ctx.lineTo(p.tail[2*i],p.tail[2*i+1]);ctx.stroke();}
  if(n){ctx.globalAlpha=.85;ctx.beginPath();ctx.arc(p.x,p.y,Math.max(.8,cfg.size*.5),0,Math.PI*2);ctx.fill();}
  cx+=p.x;cy+=p.y;}
-ctx.globalAlpha=1;canvas.dataset.centerX=(cx/points.length).toFixed(1);canvas.dataset.centerY=(cy/points.length).toFixed(1);canvas.dataset.targetX=target.x.toFixed(1);canvas.dataset.targetY=target.y.toFixed(1);canvas.dataset.len=Math.round(lenCur);requestAnimationFrame(tick);}
+ctx.globalAlpha=1;canvas.dataset.centerX=(cx/points.length).toFixed(1);canvas.dataset.centerY=(cy/points.length).toFixed(1);canvas.dataset.targetX=target.x.toFixed(1);canvas.dataset.targetY=target.y.toFixed(1);canvas.dataset.ax=anchor.x.toFixed(1);canvas.dataset.ay=anchor.y.toFixed(1);canvas.dataset.len=Math.round(lenCur);requestAnimationFrame(tick);}
 window.addEventListener('pointermove',e=>{pointer={x:e.clientX,y:e.clientY,active:true};},{capture:true,passive:true});document.documentElement.addEventListener('pointerleave',()=>pointer.active=false);window.addEventListener('resize',resize);
 $('settingsButton').onclick=()=>{const open=$('settings').hidden;$('settings').hidden=!open;$('settingsButton').setAttribute('aria-expanded',String(open));};document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('settings').hidden=true;$('settingsButton').setAttribute('aria-expanded','false');}});
 function notify(){if(embedded)parent.postMessage({type:'cover-change',config:cfg},location.origin);}
