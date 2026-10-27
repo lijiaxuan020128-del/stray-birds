@@ -2,7 +2,8 @@
 'use strict';
 const defaults={size:5,count:90,speed:1,passing:true,interval:12,birdSize:10,title:'飞鸟集',english:'STRAY BIRDS',tagline:'形态隐去，习性浮现。',paper:'#76708e',ink:'#f4efdc',titleSize:108,titleX:50,titleY:48};
 const isCover=()=>page()?.type==='cover';
-function ensure(){let at=book.pages.findIndex(p=>p.type==='cover');if(at<0){book.pages.unshift({id:uid(),type:'cover',birds:[],sectionId:'cover',theme:{...themeDefaults,paper:'#76708e',desk:'#27252e',ink:'#f4efdc',dream:true},cover:{...defaults}});pi=0;}else if(at>0){const current=page();book.pages.unshift(book.pages.splice(at,1)[0]);pi=Math.max(0,book.pages.indexOf(current));}book.pages[0].cover={...defaults,...book.pages[0].cover};}
+const enterDirectory=new URLSearchParams(location.search).get('open')==='directory';
+function ensure(){let at=book.pages.findIndex(p=>p.type==='cover');if(at<0){book.pages.unshift({id:uid(),type:'cover',birds:[],sectionId:'cover',theme:{...themeDefaults,paper:'#76708e',desk:'#27252e',ink:'#f4efdc',dream:true},cover:{...defaults}});pi=enterDirectory?1:0;}else if(at>0){const current=page();book.pages.unshift(book.pages.splice(at,1)[0]);pi=Math.max(0,book.pages.indexOf(current));}book.pages[0].cover={...defaults,...book.pages[0].cover};}
 const frame=document.querySelector('#frame'),surface=document.createElement('iframe');surface.id='coverSurface';surface.title='可编辑的飞鸟集封面';surface.src='cover.html?embed=1';surface.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;z-index:30;background:#76708e';frame.style.position='relative';frame.append(surface);
 const style=document.createElement('style');style.textContent='.isCover #canvas{visibility:hidden}.isCover .right>details,.isCover #upload,.isCover #pageUp,.isCover #deletePage{display:none!important}.isCover #inspector{display:block}.isCover #coverSurface{display:block}#coverSurface[hidden]{display:none!important}.catalogFlock{position:absolute;inset:0;width:1200px;height:760px;pointer-events:none;z-index:0}.isCover .sectionNav{display:none!important}.isCover .nav{z-index:40!important}.preview.isCover .nav{display:none!important}';document.head.append(style);
 const bg=document.createElement('canvas');bg.className='catalogFlock';bg.setAttribute('aria-hidden','true');createPassingFlock(bg,()=>({...book.pages[0]?.cover,ink:theme().ink}));
@@ -21,5 +22,5 @@ const oldUp=document.querySelector('#pageUp').onclick;document.querySelector('#p
 const oldDelete=document.querySelector('#deletePage').onclick;document.querySelector('#deletePage').onclick=()=>{if(!isCover()&&book.pages.length>2)oldDelete();};
 const save=document.querySelector('#save'),oldSave=save.onclick;save.onclick=()=>{try{localStorage.setItem('stray-birds-cover-v2',JSON.stringify(book.pages[0].cover));}catch{}oldSave();};
 window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==surface.contentWindow)return;if(e.data?.type==='cover-ready')send();if(e.data?.type==='cover-enter')go(1);if(e.data?.type==='cover-change'){book.pages[0].cover={...defaults,...e.data.config};changed();render();}});
-render();
+ensure();if(enterDirectory)pi=1;render();
 })();
