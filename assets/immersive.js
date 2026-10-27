@@ -72,6 +72,6 @@
   activate=function(b,part){if(!preview)return originalActivate(b,part);const builtIn=builtInEffect(b.name);if(builtIn)return open(builtIn);if(b.url)return open(b.url);toast('这只鸟的效果链接还没有填写')};
 
   const particleScript=document.createElement('script');
-  particleScript.src='assets/heron-catalog-particles.js?v=20261027-allbirds1';
+  particleScript.src='assets/heron-catalog-particles.js?v=20261027-adaptive2';
   document.head.append(particleScript);
 })();
