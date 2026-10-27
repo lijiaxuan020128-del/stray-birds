@@ -55,6 +55,27 @@
     return{x:p.x,y:p.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,alpha:0};
   }
 
+  function resetState(el){
+    const st=states.get(el);
+    if(st){
+      st.hover=false;st.burst=false;
+      st.im.style.opacity='';st.im.style.transition='';
+      st.canvas.remove();states.delete(el);
+    }else{
+      const im=el?.querySelector('img');
+      if(im){im.style.opacity='';im.style.transition=''}
+      el?.querySelectorAll('.heronParticleLayer').forEach(n=>n.remove());
+    }
+  }
+
+  function resetAll(){
+    document.querySelectorAll('#canvas .item').forEach(el=>{
+      const im=el.querySelector('img');
+      if((im?.alt||'').includes(HERON_NAME))resetState(el);
+    });
+  }
+  window.resetHeronCatalogParticles=resetAll;
+
   async function ensureState(el){
     let st=states.get(el);if(st)return st;
     const im=el.querySelector('img'),mask=await loadMask(im.src);
@@ -129,17 +150,6 @@
   }
   function start(){if(!raf)raf=requestAnimationFrame(tick)}
 
-  function heronAtPoint(cx,cy){
-    const els=[...document.querySelectorAll('#canvas .item')].filter(isHeronItem);
-    for(const el of els){
-      const r=el.getBoundingClientRect();if(cx<r.left||cx>r.right||cy<r.top||cy>r.bottom)continue;
-      const st=states.get(el),im=el.querySelector('img'),cached=maskCache.get(im.src);
-      if(st&&inside(st.mask,(cx-r.left)/r.width,(cy-r.top)/r.height))return el;
-      if(cached)cached.then(mask=>{if(mask&&!states.get(el)){} });
-    }
-    return null;
-  }
-
   document.addEventListener('pointermove',async e=>{
     if(!preview)return;
     const herons=[...document.querySelectorAll('#canvas .item')].filter(isHeronItem);
@@ -180,7 +190,7 @@
   };
 
   const previousRender=render;
-  render=function(){document.querySelectorAll('.heronParticleLayer').forEach(n=>n.remove());previousRender()};
+  render=function(){resetAll();previousRender()};
 
   document.querySelectorAll('#canvas .item img').forEach(im=>{if((im.alt||'').includes(HERON_NAME))loadMask(im.src)});
 })();
