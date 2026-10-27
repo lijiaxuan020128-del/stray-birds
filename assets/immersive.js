@@ -17,5 +17,5 @@
   function open(url){if(panel.open)return;const target=new URL(url,location.href);if(!['http:','https:'].includes(target.protocol)){toast('效果链接格式不正确');return}if(target.hostname==='editor.p5js.org'){toast('请填写独立效果页面地址；p5.js 分享链接仍会显示分享界面');return}previousFocus=document.activeElement;frame.src=target.href;panel.showModal()}
   function builtInEffect(name){const item=localBirdPages.find(([birdName])=>name.includes(birdName));return item?item[1]:''}
   const originalActivate=activate;activate=function(b,part){if(!preview)return originalActivate(b,part);const builtIn=builtInEffect(b.name);if(builtIn)return open(builtIn);if(b.url)return open(b.url);toast('这只鸟的效果链接还没有填写')};
-  const particleScript=document.createElement('script');particleScript.src='assets/heron-catalog-particles.js?v=20261027-smooth3';document.head.append(particleScript);
+  const particleScript=document.createElement('script');particleScript.src='assets/heron-catalog-particles.js?v=20261027-silhouette4';document.head.append(particleScript);
 })();
