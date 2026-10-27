@@ -3,23 +3,23 @@
 
   const ALPHA_THRESHOLD=28, SAMPLE_MAX=560;
   const CONFIG={
-    '苍鹭':{n:24,r:4.6,fill:'#838b95',stroke:'#e5ebf1',sw:1.15,kind:'slow',speed:[.20,.48]},
-    '麻雀':{n:26,r:4.8,fill:'#9D4B3D',stroke:'#e5c7a4',sw:1.2,kind:'hop',speed:[.35,.75]},
-    '普通翠鸟':{n:22,r:3.5,fill:'#38c9cc',stroke:'#99dbc2',sw:1,kind:'dive',speed:[.55,1.05]},
-    '普通雨燕':{n:30,r:3.4,fill:'#26353D',stroke:'#B8C4C7',sw:.7,kind:'swift',speed:[.8,1.45]},
-    '太平鸟':{n:25,r:5.4,fill:'#A58D73',stroke:'#fbbb32',sw:1,kind:'cluster',speed:[.28,.65]},
-    '小䴙䴘':{n:24,r:4.6,fill:'#795548',stroke:'#5f1707',sw:1,kind:'divehide',speed:[.30,.62]},
-    '针尾沙锥':{n:24,r:4.4,fill:'#796044',stroke:'#E1CAA1',sw:1.1,kind:'horizontal',speed:[.38,.78]},
-    '震旦鸦雀':{n:25,r:5.2,fill:'#f3bc44',stroke:'#9a5b28',sw:1.2,kind:'hop',speed:[.34,.72]},
-    '珠颈斑鸠':{n:24,r:4.8,fill:'#A58D8C',stroke:'#514945',sw:1.5,kind:'calm',speed:[.26,.58]},
-    '红隼':{n:22,r:5.1,fill:'#B87652',stroke:'#332724',sw:1.8,kind:'kestrel',speed:[.75,1.35]},
-    '白鹡鸰':{n:25,r:4.5,fill:'#E4E6E3',stroke:'#303331',sw:1.5,kind:'wagtail',speed:[.48,.92]},
-    '斑头雁':{n:24,r:5.0,fill:'#D5D2C8',stroke:'#343536',sw:2.2,kind:'migrate',speed:[.42,.82]},
-    '大斑啄木鸟':{n:23,r:5.3,fill:'#B8322A',stroke:'#52231F',sw:2,kind:'vertical',speed:[.34,.72]},
-    '戴胜':{n:24,r:5.0,fill:'#D98232',stroke:'#5A351D',sw:1.4,kind:'ground',speed:[.32,.68]},
-    '黑水鸡':{n:25,r:4.5,fill:'#541c2d',stroke:'#282424',sw:1,kind:'moorhen',speed:[.30,.66]},
-    '鸿雁':{n:24,r:5.0,fill:'#89674F',stroke:'#cab69b',sw:1.8,kind:'goose',speed:[.32,.68]},
-    '家燕':{n:28,r:4.0,fill:'#263E47',stroke:'#e45b21',sw:2,kind:'swallow',speed:[.68,1.22]}
+    '苍鹭':{n:24,r:4.6,fill:'#838b95',stroke:'#e5ebf1',sw:1.15,kind:'slow',speed:[.18,.42]},
+    '麻雀':{n:26,r:4.8,fill:'#9D4B3D',stroke:'#e5c7a4',sw:1.2,kind:'hop',speed:[.52,1.02]},
+    '普通翠鸟':{n:22,r:3.5,fill:'#38c9cc',stroke:'#99dbc2',sw:1,kind:'dive',speed:[.62,1.16]},
+    '普通雨燕':{n:30,r:3.4,fill:'#26353D',stroke:'#B8C4C7',sw:.7,kind:'swift',speed:[.92,1.62]},
+    '太平鸟':{n:25,r:5.4,fill:'#A58D73',stroke:'#fbbb32',sw:1,kind:'cluster',speed:[.38,.76]},
+    '小䴙䴘':{n:24,r:4.6,fill:'#795548',stroke:'#5f1707',sw:1,kind:'divehide',speed:[.40,.78]},
+    '针尾沙锥':{n:24,r:4.4,fill:'#796044',stroke:'#E1CAA1',sw:1.1,kind:'horizontal',speed:[.46,.88]},
+    '震旦鸦雀':{n:25,r:5.2,fill:'#f3bc44',stroke:'#9a5b28',sw:1.2,kind:'hop',speed:[.50,.96]},
+    '珠颈斑鸠':{n:24,r:4.8,fill:'#A58D8C',stroke:'#514945',sw:1.5,kind:'calm',speed:[.30,.62]},
+    '红隼':{n:22,r:5.1,fill:'#B87652',stroke:'#332724',sw:1.8,kind:'kestrel',speed:[.68,1.18]},
+    '白鹡鸰':{n:25,r:4.5,fill:'#E4E6E3',stroke:'#303331',sw:1.5,kind:'wagtail',speed:[.58,1.06]},
+    '斑头雁':{n:24,r:5.0,fill:'#D5D2C8',stroke:'#343536',sw:2.2,kind:'migrate',speed:[.30,.62]},
+    '大斑啄木鸟':{n:23,r:5.3,fill:'#B8322A',stroke:'#52231F',sw:2,kind:'vertical',speed:[.42,.80]},
+    '戴胜':{n:24,r:5.0,fill:'#D98232',stroke:'#5A351D',sw:1.4,kind:'ground',speed:[.40,.78]},
+    '黑水鸡':{n:25,r:4.5,fill:'#541c2d',stroke:'#282424',sw:1,kind:'moorhen',speed:[.32,.66]},
+    '鸿雁':{n:24,r:5.0,fill:'#89674F',stroke:'#cab69b',sw:1.8,kind:'goose',speed:[.24,.54]},
+    '家燕':{n:28,r:4.0,fill:'#263E47',stroke:'#e45b21',sw:2,kind:'swallow',speed:[.82,1.42]}
   };
   const maskCache=new Map(),states=new WeakMap();let raf=0;
 
@@ -37,11 +37,37 @@
   function randomInside(m){for(let i=0;i<1600;i++){const x=Math.random(),y=Math.random();if(inside(m,x,y))return{x,y}}return{x:.5,y:.5}}
   function particle(m,c,i){const p=randomInside(m),a=Math.random()*Math.PI*2,s=c.speed[0]+Math.random()*(c.speed[1]-c.speed[0]);return{x:p.x,y:p.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,alpha:0,phase:Math.random()*Math.PI*2,i,hidden:0}}
 
+  function maskCoverage(mask){
+    if(!mask)return .35;
+    const step=Math.max(1,Math.floor(Math.sqrt(mask.w*mask.h/9000)));
+    let solid=0,total=0;
+    for(let y=0;y<mask.h;y+=step)for(let x=0;x<mask.w;x+=step){total++;if(mask.data[(y*mask.w+x)*4+3]>ALPHA_THRESHOLD)solid++}
+    return total?solid/total:.35;
+  }
+  function adaptiveCount(el,mask,cfg){
+    const r=el.getBoundingClientRect();
+    const solidArea=Math.max(1,r.width*r.height*maskCoverage(mask));
+    const particleArea=Math.PI*Math.pow(cfg.r*2.15,2);
+    const capacity=Math.max(3,Math.floor(solidArea/particleArea));
+    const areaTarget=Math.max(4,Math.round(Math.sqrt(solidArea)*.34));
+    return Math.max(3,Math.min(cfg.n,capacity,areaTarget));
+  }
+  function adaptiveSpeed(el,cfg){
+    const r=el.getBoundingClientRect();
+    const span=Math.sqrt(Math.max(1,r.width*r.height));
+    const sizeFactor=Math.max(.82,Math.min(1.28,95/span));
+    return [cfg.speed[0]*sizeFactor,cfg.speed[1]*sizeFactor];
+  }
+  function runtimeConfig(el,mask,cfg){
+    const speed=adaptiveSpeed(el,cfg);
+    return {...cfg,n:adaptiveCount(el,mask,cfg),speed};
+  }
+
   function resetState(el){const st=states.get(el);if(st){st.hover=false;st.burst=false;st.im.style.opacity='';st.im.style.transition='';st.canvas.remove();states.delete(el)}else{const im=el?.querySelector('img');if(im){im.style.opacity='';im.style.transition=''}el?.querySelectorAll('.catalogParticleLayer').forEach(n=>n.remove())}}
   function resetAll(){document.querySelectorAll('#canvas .item').forEach(el=>{if(configFor(el))resetState(el)})}
   window.resetCatalogParticles=resetAll;window.resetHeronCatalogParticles=resetAll;
 
-  async function ensureState(el){let st=states.get(el);if(st)return st;const im=el.querySelector('img'),cfg=configFor(el),mask=await loadMask(im.src);if(!cfg||!mask||!el.isConnected||!preview)return null;const canvas=document.createElement('canvas');canvas.className='catalogParticleLayer';canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:1;z-index:3';el.append(canvas);im.style.transition='opacity .42s ease';st={el,im,canvas,mask,cfg,hover:false,burst:false,t:Math.random()*100,particles:Array.from({length:cfg.n},(_,i)=>particle(mask,cfg,i))};states.set(el,st);start();return st}
+  async function ensureState(el){let st=states.get(el);if(st)return st;const im=el.querySelector('img'),base=configFor(el),mask=await loadMask(im.src);if(!base||!mask||!el.isConnected||!preview)return null;const cfg=runtimeConfig(el,mask,base),canvas=document.createElement('canvas');canvas.className='catalogParticleLayer';canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:1;z-index:3';el.append(canvas);im.style.transition='opacity .42s ease';st={el,im,canvas,mask,cfg,hover:false,burst:false,t:Math.random()*100,particles:Array.from({length:cfg.n},(_,i)=>particle(mask,cfg,i))};states.set(el,st);start();return st}
   async function setHover(el,on){if(!on){const st=states.get(el);if(!st||st.burst)return;st.hover=false;st.im.style.opacity='1';st.particles.forEach(p=>p.alpha=Math.min(p.alpha,.75));setTimeout(()=>{if(st.hover||st.burst)return;st.canvas.remove();st.im.style.opacity='';st.im.style.transition='';states.delete(el)},460);return}const st=await ensureState(el);if(!st||st.burst)return;st.hover=true;requestAnimationFrame(()=>{if(st.hover&&!st.burst)st.im.style.opacity='0'})}
 
   function behavior(st,p){const k=st.cfg.kind,t=st.t+p.phase;
