@@ -12,12 +12,14 @@ function tick(now){const dt=Math.min((now-last)/1000||0,.033);last=now;ctx.clear
 /* 锚点本身先被缓动：鼠标瞬移时鸟群整体滑翔过去，而不是跳过去 */
 const glide=1-Math.exp(-dt*(2.9+.8*cfg.speed)),pax=anchor.x,pay=anchor.y;anchor.x+=(target.x-anchor.x)*glide;anchor.y+=(target.y-anchor.y)*glide;
 if(!paused&&!document.hidden){trail.push({x:anchor.x,y:anchor.y,t:time});}while(trail.length&&time-trail[0].t>1.6)trail.shift();
-/* 平滑速度只决定队伍长度；朝向由走过的轨迹决定，因此永远不会整队掉头 */
-const avx=(anchor.x-pax)/(dt||1e-4),avy=(anchor.y-pay)/(dt||1e-4),sv=1-Math.exp(-dt*3);velX+=(avx-velX)*sv;velY+=(avy-velY)*sv;
+/* 平滑速度只决定队伍长度；加速快、减速慢，飘带缓缓收拢而不是骤缩 */
+const avx=(anchor.x-pax)/(dt||1e-4),avy=(anchor.y-pay)/(dt||1e-4);
+const avsp=Math.hypot(avx,avy),cvsp=Math.hypot(velX,velY);
+const sv=1-Math.exp(-dt*(avsp>cvsp?4.5:1.15));velX+=(avx-velX)*sv;velY+=(avy-velY)*sv;
 const vspd=Math.hypot(velX,velY),gap=cfg.spacing,scat=cfg.scatter;
 /* 队伍沿锚点最近 1.6 秒走过的路径排开：路径是弯的，队形就是弯的飘带 */
 let cum=0;const segs=[0];for(let i=1;i<trail.length;i++){cum+=Math.hypot(trail[i].x-trail[i-1].x,trail[i].y-trail[i-1].y);segs.push(cum);}
-const total=cum,len=Math.min(w*.62,(44+Math.min(460,vspd*1.25))*gap);
+const total=cum,len=Math.min(w*.62,(60+Math.min(460,vspd*1.25))*gap);
 const trailAt=d=>{const n=trail.length;if(!n)return{x:anchor.x,y:anchor.y,tx:1,ty:0};
  const from=total-Math.min(d,total);let i=1;while(i<segs.length&&segs[i]<from)i++;
  const p0=trail[i-1],p1=trail[i]||p0,s0=segs[i-1],s1=segs[i],f=s1>s0?(from-s0)/(s1-s0):0;
