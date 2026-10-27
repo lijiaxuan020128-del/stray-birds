@@ -3,20 +3,24 @@
 const defaults={size:5,count:90,speed:1,spacing:1,scatter:1,passing:true,interval:12,birdSize:10,title:'飞鸟集',english:'STRAY BIRDS',tagline:'形态隐去，习性浮现。',paper:'#76708e',ink:'#f4efdc',titleSize:108,titleX:50,titleY:48};
 const key='stray-birds-cover-v2',embedded=new URLSearchParams(location.search).has('embed');
 let cfg={...defaults};try{Object.assign(cfg,JSON.parse(localStorage.getItem(key)||'{}'));}catch{}
-const $=id=>document.getElementById(id),canvas=$('sky'),ctx=canvas.getContext('2d');let w=innerWidth,h=innerHeight,points=[],time=0,last=0,pointer={x:w*.65,y:h*.6,active:false},paused=false,anchor={x:w*.65,y:h*.6},velX=0,velY=0,trail=[];
+const $=id=>document.getElementById(id),canvas=$('sky'),ctx=canvas.getContext('2d');let w=innerWidth,h=innerHeight,points=[],time=0,last=0,pointer={x:w*.65,y:h*.6,active:false},paused=false,anchor={x:w*.65,y:h*.6},vaX=0,vaY=0,trail=[];
 function normalize(){for(const [k,min,max] of [['size',1,12],['count',12,180],['speed',.3,2],['interval',5,30],['birdSize',4,24],['titleSize',40,160],['titleX',15,85],['titleY',20,75],['spacing',.4,2.5]])cfg[k]=Math.max(min,Math.min(max,Number(cfg[k])||defaults[k]));const sv=Number(cfg.scatter);cfg.scatter=Math.max(0,Math.min(2.5,Number.isFinite(sv)?sv:defaults.scatter));cfg.count=Math.round(cfg.count);}
 function seed(){points=Array.from({length:cfg.count},(_,i)=>{const t=Math.sqrt((i+.5)/cfg.count),ph=i*2.39996+Math.random()*.6;return{x:anchor.x+(Math.random()-.5)*200,y:anchor.y+(Math.random()-.5)*160,vx:0,vy:0,phase:ph,slot:t,orb:9+t*30,follow:.22+t*.78,ang:.3+Math.random()*.42,breathe:.13+Math.random()*.15,bf:.3+Math.random()*.5,wob:Math.random()*6.283,jx:Math.random()*2-1,jy:Math.random()*2-1,tail:[]};});}
 function sync(){normalize();for(const k of ['size','count','speed','interval','spacing','scatter']){$(k).value=cfg[k];$(k+'Out').textContent=cfg[k]+(k==='interval'?' 秒':k==='size'?' px':'');}$('passing').checked=cfg.passing;$('pause').textContent=paused?'继续运动':'暂停运动';document.querySelector('h1').textContent=cfg.title;document.querySelector('.english').textContent=cfg.english;document.querySelector('main p').textContent=cfg.tagline;document.documentElement.style.setProperty('--paper',cfg.paper);document.documentElement.style.setProperty('--ink',cfg.ink);const main=document.querySelector('main');main.style.left=cfg.titleX+'%';main.style.top=cfg.titleY+'%';document.querySelector('h1').style.fontSize=`clamp(40px,${cfg.titleSize/12}vw,${cfg.titleSize}px)`;}
 function resize(){w=innerWidth;h=innerHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);}
 function tick(now){const dt=Math.min((now-last)/1000||0,.033);last=now;ctx.clearRect(0,0,w,h);if(!paused&&!document.hidden)time+=dt;const target=pointer.active?pointer:{x:w*(.5+.26*Math.cos(time*.18)),y:h*(.52+.22*Math.sin(time*.24))};
-/* 锚点本身先被缓动：鼠标瞬移时鸟群整体滑翔过去，而不是跳过去 */
-const glide=1-Math.exp(-dt*(2.9+.8*cfg.speed)),pax=anchor.x,pay=anchor.y;anchor.x+=(target.x-anchor.x)*glide;anchor.y+=(target.y-anchor.y)*glide;
-if(!paused&&!document.hidden){trail.push({x:anchor.x,y:anchor.y,t:time});}while(trail.length&&time-trail[0].t>1.6)trail.shift();
-/* 平滑速度只决定队伍长度；加速快、减速慢，飘带缓缓收拢而不是骤缩 */
-const avx=(anchor.x-pax)/(dt||1e-4),avy=(anchor.y-pay)/(dt||1e-4);
-const avsp=Math.hypot(avx,avy),cvsp=Math.hypot(velX,velY);
-const sv=1-Math.exp(-dt*(avsp>cvsp?4.5:1.15));velX+=(avx-velX)*sv;velY+=(avy-velY)*sv;
-const vspd=Math.hypot(velX,velY),gap=cfg.spacing,scat=cfg.scatter;
+/* 锚点用加速度受限的转向力追踪指针：急停后靠惯性滑翔再渐进减速，绝无瞬间拽动 */
+if(!paused&&!document.hidden){
+ const stiff=3.4+1.6*cfg.speed,vmax=620+680*cfg.speed,amax=(1500+1300*cfg.speed)*dt;
+ let dvx=(target.x-anchor.x)*stiff,dvy=(target.y-anchor.y)*stiff;const dvl=Math.hypot(dvx,dvy);
+ if(dvl>vmax){dvx*=vmax/dvl;dvy*=vmax/dvl;}
+ let ax=dvx-vaX,ay=dvy-vaY;const al=Math.hypot(ax,ay);
+ if(al>amax){ax*=amax/al;ay*=amax/al;}
+ vaX+=ax;vaY+=ay;anchor.x+=vaX*dt;anchor.y+=vaY*dt;
+ trail.push({x:anchor.x,y:anchor.y,t:time});}
+while(trail.length&&time-trail[0].t>1.6)trail.shift();
+/* 锚点速度受加速度限制，天然平滑，直接决定飘带长度 */
+const vspd=Math.hypot(vaX,vaY),gap=cfg.spacing,scat=cfg.scatter;
 /* 队伍沿锚点最近 1.6 秒走过的路径排开：路径是弯的，队形就是弯的飘带 */
 let cum=0;const segs=[0];for(let i=1;i<trail.length;i++){cum+=Math.hypot(trail[i].x-trail[i-1].x,trail[i].y-trail[i-1].y);segs.push(cum);}
 const total=cum,len=Math.min(w*.62,(60+Math.min(460,vspd*1.25))*gap);
