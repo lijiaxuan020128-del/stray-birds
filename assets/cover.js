@@ -3,7 +3,7 @@
 const defaults={size:5,count:90,speed:1,spacing:1,scatter:1,passing:true,interval:12,birdSize:10,title:'飞鸟集',english:'STRAY BIRDS',tagline:'形态隐去，习性浮现。',paper:'#76708e',ink:'#f4efdc',titleSize:108,titleX:50,titleY:48};
 const key='stray-birds-cover-v2',embedded=new URLSearchParams(location.search).has('embed');
 let cfg={...defaults};try{Object.assign(cfg,JSON.parse(localStorage.getItem(key)||'{}'));}catch{}
-const $=id=>document.getElementById(id),canvas=$('sky'),ctx=canvas.getContext('2d');let w=innerWidth,h=innerHeight,points=[],time=0,last=0,pointer={x:w*.65,y:h*.6,active:false},paused=false,anchor={x:w*.65,y:h*.6},vaX=0,vaY=0,trail=[];
+const $=id=>document.getElementById(id),canvas=$('sky'),ctx=canvas.getContext('2d');let w=innerWidth,h=innerHeight,points=[],time=0,last=0,pointer={x:w*.65,y:h*.6,active:false},paused=false,anchor={x:w*.65,y:h*.6},vaX=0,vaY=0,trail=[],lenCur=140,lastSX=w*.65,lastSY=h*.6;
 function normalize(){for(const [k,min,max] of [['size',1,12],['count',12,180],['speed',.3,2],['interval',5,30],['birdSize',4,24],['titleSize',40,160],['titleX',15,85],['titleY',20,75],['spacing',.4,2.5]])cfg[k]=Math.max(min,Math.min(max,Number(cfg[k])||defaults[k]));const sv=Number(cfg.scatter);cfg.scatter=Math.max(0,Math.min(2.5,Number.isFinite(sv)?sv:defaults.scatter));cfg.count=Math.round(cfg.count);}
 function seed(){points=Array.from({length:cfg.count},(_,i)=>{const t=Math.sqrt((i+.5)/cfg.count),ph=i*2.39996+Math.random()*.6;return{x:anchor.x+(Math.random()-.5)*200,y:anchor.y+(Math.random()-.5)*160,vx:0,vy:0,phase:ph,slot:t,orb:9+t*30,follow:.22+t*.78,ang:.3+Math.random()*.42,breathe:.13+Math.random()*.15,bf:.3+Math.random()*.5,wob:Math.random()*6.283,jx:Math.random()*2-1,jy:Math.random()*2-1,tail:[]};});}
 function sync(){normalize();for(const k of ['size','count','speed','interval','spacing','scatter']){$(k).value=cfg[k];$(k+'Out').textContent=cfg[k]+(k==='interval'?' 秒':k==='size'?' px':'');}$('passing').checked=cfg.passing;$('pause').textContent=paused?'继续运动':'暂停运动';document.querySelector('h1').textContent=cfg.title;document.querySelector('.english').textContent=cfg.english;document.querySelector('main p').textContent=cfg.tagline;document.documentElement.style.setProperty('--paper',cfg.paper);document.documentElement.style.setProperty('--ink',cfg.ink);const main=document.querySelector('main');main.style.left=cfg.titleX+'%';main.style.top=cfg.titleY+'%';document.querySelector('h1').style.fontSize=`clamp(40px,${cfg.titleSize/12}vw,${cfg.titleSize}px)`;}
@@ -17,13 +17,18 @@ if(!paused&&!document.hidden){
  let ax=dvx-vaX,ay=dvy-vaY;const al=Math.hypot(ax,ay);
  if(al>amax){ax*=amax/al;ay*=amax/al;}
  vaX+=ax;vaY+=ay;anchor.x+=vaX*dt;anchor.y+=vaY*dt;
- trail.push({x:anchor.x,y:anchor.y,t:time});}
+ /* 轨迹记录做低通：折返的路径被抹圆，队伍不会沿折痕裂开或抖动 */
+ lastSX+=(anchor.x-lastSX)*.3;lastSY+=(anchor.y-lastSY)*.3;
+ trail.push({x:lastSX,y:lastSY,t:time});}
 while(trail.length&&time-trail[0].t>1.6)trail.shift();
-/* 锚点速度受加速度限制，天然平滑，直接决定飘带长度 */
+/* 队长独立缓动：展开快、收拢慢，落定后飘带缓缓缩回而不是骤缩 */
 const vspd=Math.hypot(vaX,vaY),gap=cfg.spacing,scat=cfg.scatter;
+const wantLen=Math.min(w*.62,(60+Math.min(460,vspd*1.25))*gap);
+lenCur+=(wantLen-lenCur)*(1-Math.exp(-dt*(wantLen>lenCur?3.2:.85)));
+const len=lenCur;
 /* 队伍沿锚点最近 1.6 秒走过的路径排开：路径是弯的，队形就是弯的飘带 */
 let cum=0;const segs=[0];for(let i=1;i<trail.length;i++){cum+=Math.hypot(trail[i].x-trail[i-1].x,trail[i].y-trail[i-1].y);segs.push(cum);}
-const total=cum,len=Math.min(w*.62,(60+Math.min(460,vspd*1.25))*gap);
+const total=cum;
 const trailAt=d=>{const n=trail.length;if(!n)return{x:anchor.x,y:anchor.y,tx:1,ty:0};
  const from=total-Math.min(d,total);let i=1;while(i<segs.length&&segs[i]<from)i++;
  const p0=trail[i-1],p1=trail[i]||p0,s0=segs[i-1],s1=segs[i],f=s1>s0?(from-s0)/(s1-s0):0;
@@ -39,14 +44,14 @@ for(const p of points){if(!paused&&!document.hidden){
  const tx=d.x-d.ty*Math.cos(a)*orb+d.tx*Math.sin(a)*orb*.72+wobX;
  const ty=d.y+d.tx*Math.cos(a)*orb+d.ty*Math.sin(a)*orb*.72+wobY;
  /* 外圈粒子滞后更多：鸟群像流体一样被拉扯变形，而不是刚性队列 */
- const k=1-Math.exp(-dt*(1.8+4.6*p.follow)*cfg.speed);
+ const k=1-Math.exp(-dt*(1.3+3.4*p.follow)*cfg.speed);
  const nx=p.x+(tx-p.x)*k,ny=p.y+(ty-p.y)*k;p.vx=nx-p.x;p.vy=ny-p.y;p.x=nx;p.y=ny;
  p.tail.push(p.x,p.y);if(p.tail.length>14)p.tail.splice(0,2);}
  const n=p.tail.length/2;
  for(let i=1;i<n;i++){const t=i/n;ctx.globalAlpha=.55*t*t;ctx.lineWidth=Math.max(.6,cfg.size*(.3+.6*t));ctx.beginPath();ctx.moveTo(p.tail[2*i-2],p.tail[2*i-1]);ctx.lineTo(p.tail[2*i],p.tail[2*i+1]);ctx.stroke();}
  if(n){ctx.globalAlpha=.85;ctx.beginPath();ctx.arc(p.x,p.y,Math.max(.8,cfg.size*.5),0,Math.PI*2);ctx.fill();}
  cx+=p.x;cy+=p.y;}
-ctx.globalAlpha=1;canvas.dataset.centerX=(cx/points.length).toFixed(1);canvas.dataset.centerY=(cy/points.length).toFixed(1);canvas.dataset.targetX=target.x.toFixed(1);canvas.dataset.targetY=target.y.toFixed(1);requestAnimationFrame(tick);}
+ctx.globalAlpha=1;canvas.dataset.centerX=(cx/points.length).toFixed(1);canvas.dataset.centerY=(cy/points.length).toFixed(1);canvas.dataset.targetX=target.x.toFixed(1);canvas.dataset.targetY=target.y.toFixed(1);canvas.dataset.len=Math.round(lenCur);requestAnimationFrame(tick);}
 window.addEventListener('pointermove',e=>{pointer={x:e.clientX,y:e.clientY,active:true};},{capture:true,passive:true});document.documentElement.addEventListener('pointerleave',()=>pointer.active=false);window.addEventListener('resize',resize);
 $('settingsButton').onclick=()=>{const open=$('settings').hidden;$('settings').hidden=!open;$('settingsButton').setAttribute('aria-expanded',String(open));};document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('settings').hidden=true;$('settingsButton').setAttribute('aria-expanded','false');}});
 function notify(){if(embedded)parent.postMessage({type:'cover-change',config:cfg},location.origin);}
