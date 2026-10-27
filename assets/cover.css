@@ -2,8 +2,7 @@
 
 .passingFlock{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}.embedded header #settingsButton{display:none}.embedded header{top:22px}.embedded footer{bottom:20px}
 
-/* 小标题说明表现手法：中文细字加两侧短线；英文副标题改为更大的衬线斜体，二者拉开层次 */
-.eyebrow{display:flex;align-items:center;justify-content:center;gap:14px;font-size:10px;letter-spacing:6px;padding-left:6px;opacity:.9}
-.eyebrow::before,.eyebrow::after{content:"";width:28px;height:1px;background:currentColor;opacity:.55;flex:none}
+/* 英文副标题用衬线斜体，与中文正文拉开层次；正文行补偿字距造成的偏移，保证水平居中 */
 .english{font:italic 400 22px/1.4 Georgia,"Songti SC",serif;letter-spacing:13px;padding-left:13px;opacity:.95}
-@media(max-width:600px){.eyebrow{font-size:9px;letter-spacing:3px;gap:10px}.eyebrow::before,.eyebrow::after{width:18px}.english{font-size:15px;letter-spacing:8px;padding-left:8px}}
+main p{padding-left:5px}
+@media(max-width:600px){.english{font-size:15px;letter-spacing:8px;padding-left:8px}}
