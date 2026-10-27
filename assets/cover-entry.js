@@ -5,7 +5,7 @@
    location.replace(target.href);return;
  }
  async function start(){
-   for(const path of ['assets/flock.js?v=2','assets/cover-workbench.js?v=3'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=path;script.onload=resolve;script.onerror=reject;document.body.append(script);});
+   for(const path of ['assets/flock.js?v=3','assets/cover-workbench.js?v=3'])await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=path;script.onload=resolve;script.onerror=reject;document.body.append(script);});
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
