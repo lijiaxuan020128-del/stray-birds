@@ -25,7 +25,12 @@
     ['家燕','birds/view/?bird=家燕']
   ];
   let previousFocus;
-  function close(){panel.close();frame.src='about:blank';document.documentElement.style.overflow='';document.body.style.overflow='';previousFocus?.focus()}
+  function close(){
+    panel.close();frame.src='about:blank';
+    document.documentElement.style.overflow='';document.body.style.overflow='';
+    if(typeof window.resetHeronCatalogParticles==='function')window.resetHeronCatalogParticles();
+    previousFocus?.focus();
+  }
   panel.addEventListener('cancel',e=>{e.preventDefault();close()});
   function equalizeMappingGaps(doc){
     const cn=[...doc.querySelectorAll('.mapping-row .mapping-cn')];
@@ -66,6 +71,6 @@
   activate=function(b,part){if(!preview)return originalActivate(b,part);const builtIn=builtInEffect(b.name);if(builtIn)return open(builtIn);if(b.url)return open(b.url);toast('这只鸟的效果链接还没有填写')};
 
   const particleScript=document.createElement('script');
-  particleScript.src='assets/heron-catalog-particles.js?v=20261027-2';
+  particleScript.src='assets/heron-catalog-particles.js?v=20261027-3';
   document.head.append(particleScript);
 })();
