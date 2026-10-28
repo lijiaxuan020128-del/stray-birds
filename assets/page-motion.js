@@ -57,11 +57,11 @@
       const tag = el.classList.contains('tag');
       const rest = { translate: '0px 0px', opacity: 1 };
       const away = { translate: `${offset}px ${incoming ? 12 : -8}px`, opacity: 0 };
-      animate(el, incoming ? [away, rest] : [rest, away], incoming ? 680 : 390,
-        incoming ? (tag ? 110 : 0) : (tag ? 0 : 45));
+      animate(el, incoming ? [away, rest] : [rest, away], incoming ? 1050 : 620,
+        incoming ? (tag ? 170 : 0) : (tag ? 0 : 70));
     });
     canvas.querySelectorAll('.pageText,.pageLine,.catalogKicker,.dreamNote,.dreamDeco,.empty').forEach(el => {
-      animate(el, incoming ? [{opacity:0},{opacity:1}] : [{opacity:1},{opacity:0}], incoming ? 550 : 280, incoming ? 90 : 0);
+      animate(el, incoming ? [{opacity:0},{opacity:1}] : [{opacity:1},{opacity:0}], incoming ? 760 : 420, incoming ? 130 : 0);
     });
   }
   function startWind(direction) {
@@ -111,7 +111,7 @@
       setTimeout(() => {
         if (token !== generation) return;
         finish(); quietUntil = performance.now() + 150;
-      }, 810);
+      }, 1210);
     }, 350);
   };
   const editable = target => target?.closest?.('input,textarea,select,[contenteditable="true"],aside');
