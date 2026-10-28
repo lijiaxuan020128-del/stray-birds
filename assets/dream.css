@@ -8,4 +8,4 @@
 .dream .canvas:before{content:'FIELD NOTES / 飞鸟集';position:absolute;left:48px;top:26px;z-index:54;font:12px Arial,"Microsoft Yahei",sans-serif;letter-spacing:2px;color:#f4efdc;white-space:nowrap;pointer-events:none}
 .dream .canvas:after{content:'';position:absolute;left:48px;right:48px;top:58px;height:1px;z-index:54;background:rgba(244,239,220,.25);pointer-events:none}
 /* Keep the catalog's own title/category block clearly below the shared strip. */
-.dream .canvas .head{transform:translateY(82px)}
+.dream .canvas .head{transform:translateY(112px)}
