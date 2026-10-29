@@ -36,6 +36,16 @@
     animations.push(animation);
     return animation;
   }
+  function coverText(incoming) {
+    try {
+      const doc = cover.contentDocument;
+      if (!doc) return false;
+      const nodes = doc.querySelectorAll('main h1,main .english,main p,main .enter,footer');
+      if (!nodes.length) return false;
+      nodes.forEach(el => animate(el, incoming ? [{opacity:0},{opacity:1}] : [{opacity:1},{opacity:0}], incoming ? 760 : 420, incoming ? 130 : 0));
+      return true;
+    } catch { return false; }
+  }
   function finish() {
     animations.forEach(a => a.cancel()); animations = [];
     turning = false; flow = null;
@@ -91,8 +101,10 @@
     document.body.classList.add('windTurning'); frame.setAttribute('aria-busy', 'true');
     window.resetCatalogParticles?.();
     startWind(direction);
-    if (fromCover) animate(cover, [{opacity:1},{opacity:0}], 440);
-    else slide(false);
+    if (fromCover) {
+      coverText(false);
+      animate(cover, [{opacity:1},{opacity:0}], 740);
+    } else slide(false);
     setTimeout(() => {
       if (token !== generation || !preview) return;
       // originalGo calls the wrapped render; temporarily release its cancellation guard.
@@ -104,9 +116,10 @@
       animate(canvas, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 740);
       animate(document.body, [{backgroundColor:fromDesk},{backgroundColor:theme().desk}], 740);
       if (isCover()) {
-        // The original flock resumes under a slow reveal; its mouse influence starts at zero.
+        // Keep the cover itself stationary: only its typography fades in, matching catalog text.
         api()?.resume();
-        animate(cover, [{opacity:0},{opacity:1}], 740);
+        cover.style.opacity = '1';
+        if (!coverText(true)) animate(cover, [{opacity:0},{opacity:1}], 740);
       } else slide(true);
       setTimeout(() => {
         if (token !== generation) return;
