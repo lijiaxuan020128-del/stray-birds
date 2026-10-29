@@ -6,13 +6,16 @@
   <title>苍鹭 · 飞鸟集</title>
   <script src="p5.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css?v=20261029-callleft2" />
+  <style>
+    #heronCall{position:static;display:inline-block;vertical-align:middle;margin-left:12px;padding:5px 9px;border:1px solid rgba(244,239,220,.25);background:transparent;color:rgb(244,239,220);font:9px Arial,"Microsoft Yahei",sans-serif;letter-spacing:1px;opacity:.62;cursor:pointer;transform:translateY(-1px);transition:.18s ease}
+    #heronCall:hover{opacity:.95;background:rgba(244,239,220,.07);border-color:rgba(244,239,220,.42)}
+  </style>
 </head>
 <body>
   <main class="species-page">
     <header class="species-head">
-      <div><div class="eyebrow">FIELD NOTES · 涉禽</div><h1>苍鹭 <span>Grey Heron</span></h1></div>
+      <div><div class="eyebrow">FIELD NOTES · 涉禽</div><h1>苍鹭 <span>Grey Heron</span><button id="heronCall" type="button" aria-label="播放苍鹭叫声" title="播放苍鹭叫声">♪ 鸟鸣</button></h1></div>
       <nav class="page-actions" aria-label="页面操作">
-        <button id="heronCall" type="button" aria-label="播放苍鹭叫声" title="播放苍鹭叫声">♪ 鸟鸣</button>
         <button id="backToCatalog" type="button">← 返回目录</button>
       </nav>
     </header>
