@@ -54,7 +54,6 @@
     syncSurface();
     if (isCover() || !preview) { motes = []; api()?.resume(); }
   }
-  // Editor changes or mode switches cancel delayed navigation immediately.
   render = function () {
     if (turning) { generation++; finish(); }
     originalRender(); syncSurface();
@@ -95,6 +94,8 @@
     if (turning) return;
     if (!preview || reduced.matches) { originalGo(index); syncSurface(); return; }
     const token = ++generation, fromCover = isCover(), fromPaper = paper();
+    const targetPage = book.pages[index];
+    const targetPaper = targetPage?.type === 'cover' ? targetPage.cover?.paper || '#76708e' : (targetPage?.theme?.paper || book.theme?.paper || theme().paper);
     const fromDesk = getComputedStyle(document.body).backgroundColor;
     const direction = index > pi ? 1 : -1;
     transitionPaper = fromPaper;
@@ -108,24 +109,24 @@
     } else slide(false);
     setTimeout(() => {
       if (token !== generation || !preview) return;
-      // Keep the outgoing paper color pinned while render() builds the target page,
-      // then let Web Animations interpolate continuously to the new paper color.
       turning = false;
       originalGo(index);
       turning = true;
-      const toPaper = paper();
+      const toPaper = targetPaper || paper();
+      transitionPaper = fromPaper;
       backdrop.style.backgroundColor = fromPaper;
+      canvas.style.backgroundColor = fromPaper;
       animate(backdrop, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 900);
       animate(canvas, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 900);
       animate(document.body, [{backgroundColor:fromDesk},{backgroundColor:theme().desk}], 900);
       if (isCover()) {
-        // Keep the cover itself stationary: only its typography fades in, matching catalog text.
         api()?.resume();
         cover.style.opacity = '1';
         if (!coverText(true)) animate(cover, [{opacity:0},{opacity:1}], 740);
       } else slide(true);
       setTimeout(() => {
         if (token !== generation) return;
+        transitionPaper = toPaper;
         finish(); quietUntil = performance.now() + 150;
       }, 1210);
     }, 350);
@@ -159,7 +160,6 @@
     } catch {}
   }
   cover.addEventListener('load', bindCover); bindCover();
-  // Existing particle hover/click handlers must not fight the page transition.
   ['pointermove','click'].forEach(type => window.addEventListener(type, e => {
     if (turning && e.target.closest?.('#frame')) { e.stopImmediatePropagation(); if (type === 'click') e.preventDefault(); }
   }, true));
