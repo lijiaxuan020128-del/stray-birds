@@ -11,11 +11,11 @@ function setup(blocked = false) {
     addEventListener() {}
   }
   const header = {append:b=>buttons.push(b)};
-  const doc = {querySelector:s=>s==='.bookIdentityFrame'?header:null,body:{append(){}},
+  const doc = {querySelector:s=>s==='.bookIdentityFrame'?header:null,body:{append(){},classList:{contains:()=>false}},
     createElement:()=>({style:{},setAttribute(k,v){this[k]=v;},getAttribute(k){return this[k];},addEventListener(k,fn){this[k]=fn;}}),
     addEventListener:(k,fn)=>gestures[k]=fn};
   const window={addEventListener:(k,fn)=>events[k]=fn};
-  vm.runInNewContext(fs.readFileSync('assets/book-audio.js','utf8'),{document:doc,window,Audio,WeakSet});
+  vm.runInNewContext(fs.readFileSync('assets/book-audio.js','utf8'),{document:doc,window,Audio,WeakSet,preview:true,performance:{now:()=>1000}});
   return {audio:window.bookAudio,button:buttons[0],events,gestures,allow(){blocked=false;}};
 }
 test('page turns preserve the music playhead; mute survives gestures and turns; re-enable resumes',()=>{
@@ -30,4 +30,15 @@ test('page turns preserve the music playhead; mute survives gestures and turns; 
 test('blocked autoplay can be started by first gesture',async()=>{
   const s=setup(true); await Promise.resolve(); assert.equal(s.audio.music.paused,true);
   s.allow(); s.gestures.click({target:{}}); await Promise.resolve(); assert.equal(s.audio.music.paused,false);
+});
+
+test('new labels play a quiet single hover sound; inner movement and mute do not retrigger',()=>{
+ const s=setup(), tag={contains:other=>other==='inside'};
+ s.gestures.pointerover({target:{closest:()=>tag},relatedTarget:'inside',pointerType:'mouse'});
+ assert.equal(s.audio.hover.plays,0);
+ s.gestures.pointerover({target:{closest:()=>tag},pointerType:'mouse'});
+ assert.equal(s.audio.hover.plays,1); assert.ok(s.audio.hover.volume<s.audio.music.volume);
+ s.button.click(); assert.equal(s.audio.hover.paused,true);
+ s.gestures.pointerover({target:{closest:()=>tag},pointerType:'mouse'});
+ assert.equal(s.audio.hover.plays,1);
 });
