@@ -18,7 +18,7 @@
   layer.setAttribute('aria-hidden', 'true');
   frame.append(layer);
   const ctx = layer.getContext('2d');
-  let turning = false, generation = 0, animations = [], motes = [], flow = null, transitionPaper = null;
+  let turning = false, generation = 0, animations = [], motes = [], flow = null, transitionPaper = null, coverEntering = false;
   let last = performance.now(), wheelSum = 0, wheelLast = 0, wheelSign = 0, quietUntil = 0;
   const originalGo = go;
   const originalRender = render;
@@ -52,12 +52,16 @@
     document.body.classList.remove('windTurning');
     frame.removeAttribute('aria-busy');
     syncSurface();
-    if (isCover() || !preview) { motes = []; api()?.resume(); }
+    if (isCover() || !preview) {
+      motes = [];
+      if (!coverEntering) api()?.resume();
+    }
+    coverEntering = false;
   }
   render = function () {
     if (turning) { generation++; finish(); }
     originalRender(); syncSurface();
-    if (!preview || isCover()) { motes = []; api()?.resume(); }
+    if (!preview || isCover()) { motes = []; if (!coverEntering) api()?.resume(); }
   };
   function slide(incoming) {
     canvas.querySelectorAll('.item').forEach(el => {
@@ -96,6 +100,7 @@
     const token = ++generation, fromCover = isCover(), fromPaper = paper();
     const targetPage = book.pages[index];
     const targetPaper = targetPage?.type === 'cover' ? targetPage.cover?.paper || '#76708e' : (targetPage?.theme?.paper || book.theme?.paper || theme().paper);
+    const targetIsCover = targetPage?.type === 'cover';
     const fromDesk = getComputedStyle(document.body).backgroundColor;
     const direction = index > pi ? 1 : -1;
     transitionPaper = fromPaper;
@@ -120,7 +125,8 @@
       animate(canvas, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 900);
       animate(document.body, [{backgroundColor:fromDesk},{backgroundColor:theme().desk}], 900);
       if (isCover()) {
-        api()?.resume();
+        coverEntering = true;
+        api()?.enterFromEdge?.(direction, 1050);
         cover.style.opacity = '1';
         if (!coverText(true)) animate(cover, [{opacity:0},{opacity:1}], 740);
       } else slide(true);
