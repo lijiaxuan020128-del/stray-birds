@@ -100,7 +100,6 @@
     const token = ++generation, fromCover = isCover(), fromPaper = paper();
     const targetPage = book.pages[index];
     const targetPaper = targetPage?.type === 'cover' ? targetPage.cover?.paper || '#76708e' : (targetPage?.theme?.paper || book.theme?.paper || theme().paper);
-    const targetIsCover = targetPage?.type === 'cover';
     const fromDesk = getComputedStyle(document.body).backgroundColor;
     const direction = index > pi ? 1 : -1;
     transitionPaper = fromPaper;
@@ -120,9 +119,9 @@
       const toPaper = targetPaper || paper();
       transitionPaper = fromPaper;
       backdrop.style.backgroundColor = fromPaper;
-      canvas.style.backgroundColor = fromPaper;
+      // Never animate or overwrite #canvas background: render/theme owns catalog colors.
+      // Only the independent backdrop interpolates between the two page papers.
       animate(backdrop, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 900);
-      animate(canvas, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 900);
       animate(document.body, [{backgroundColor:fromDesk},{backgroundColor:theme().desk}], 900);
       if (isCover()) {
         coverEntering = true;
