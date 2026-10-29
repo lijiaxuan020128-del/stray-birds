@@ -7,7 +7,7 @@
   if (!frame || !canvas || !cover) return;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const style = document.createElement('style');
-  style.textContent = '.windTurning #canvas,.windTurning #coverSurface{pointer-events:none!important}.windTurning .sectionNav{pointer-events:none}.preview #frame{isolation:isolate}.windLayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}.preview #canvas .item{will-change:translate,opacity}';
+  style.textContent = '.windTurning #canvas,.windTurning #coverSurface{pointer-events:none!important}.windTurning .sectionNav{pointer-events:none}.preview #frame{isolation:isolate}.windLayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}.preview #canvas .item{will-change:translate,opacity}.preview #coverSurface{will-change:translate,opacity}';
   document.head.append(style);
   const backdrop = document.createElement('div');
   backdrop.style.cssText='position:absolute;inset:0;z-index:-1;pointer-events:none';
@@ -64,6 +64,13 @@
       animate(el, incoming ? [{opacity:0},{opacity:1}] : [{opacity:1},{opacity:0}], incoming ? 760 : 420, incoming ? 130 : 0);
     });
   }
+  function coverMove(incoming, direction) {
+    const distance = Math.max(70, Math.min(150, frame.getBoundingClientRect().width * .11));
+    const edge = direction < 0 ? -distance : distance;
+    const rest = { translate: '0px 0px', opacity: 1 };
+    const away = { translate: `${edge}px 10px`, opacity: 0 };
+    animate(cover, incoming ? [away, rest] : [rest, away], incoming ? 1050 : 620);
+  }
   function startWind(direction) {
     const rect = frame.getBoundingClientRect();
     const snapshot = isCover() ? api()?.take() : null;
@@ -91,7 +98,7 @@
     document.body.classList.add('windTurning'); frame.setAttribute('aria-busy', 'true');
     window.resetCatalogParticles?.();
     startWind(direction);
-    if (fromCover) animate(cover, [{opacity:1},{opacity:0}], 440);
+    if (fromCover) coverMove(false, direction);
     else slide(false);
     setTimeout(() => {
       if (token !== generation || !preview) return;
@@ -104,9 +111,10 @@
       animate(canvas, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 740);
       animate(document.body, [{backgroundColor:fromDesk},{backgroundColor:theme().desk}], 740);
       if (isCover()) {
-        // The original flock resumes under a slow reveal; its mouse influence starts at zero.
+        // Reverse navigation now mirrors the catalog entrance: the cover glides in from
+        // the previous-page side while its flock resumes beneath the same wind layer.
         api()?.resume();
-        animate(cover, [{opacity:0},{opacity:1}], 740);
+        coverMove(true, direction);
       } else slide(true);
       setTimeout(() => {
         if (token !== generation) return;
