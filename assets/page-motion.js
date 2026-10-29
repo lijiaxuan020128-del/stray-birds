@@ -18,7 +18,7 @@
   layer.setAttribute('aria-hidden', 'true');
   frame.append(layer);
   const ctx = layer.getContext('2d');
-  let turning = false, generation = 0, animations = [], motes = [], flow = null;
+  let turning = false, generation = 0, animations = [], motes = [], flow = null, transitionPaper = null;
   let last = performance.now(), wheelSum = 0, wheelLast = 0, wheelSign = 0, quietUntil = 0;
   const originalGo = go;
   const originalRender = render;
@@ -26,7 +26,7 @@
   const paper = () => isCover() ? page().cover?.paper || '#76708e' : theme().paper;
   const api = () => { try { return cover.contentWindow?.coverMotion; } catch { return null; } };
   function syncSurface() {
-    backdrop.style.backgroundColor = paper();
+    backdrop.style.backgroundColor = transitionPaper || paper();
     cover.style.background = 'transparent';
     try { if (cover.contentDocument?.body) cover.contentDocument.body.style.background = 'transparent'; } catch {}
   }
@@ -48,7 +48,7 @@
   }
   function finish() {
     animations.forEach(a => a.cancel()); animations = [];
-    turning = false; flow = null;
+    turning = false; flow = null; transitionPaper = null;
     document.body.classList.remove('windTurning');
     frame.removeAttribute('aria-busy');
     syncSurface();
@@ -97,6 +97,7 @@
     const token = ++generation, fromCover = isCover(), fromPaper = paper();
     const fromDesk = getComputedStyle(document.body).backgroundColor;
     const direction = index > pi ? 1 : -1;
+    transitionPaper = fromPaper;
     turning = true;
     document.body.classList.add('windTurning'); frame.setAttribute('aria-busy', 'true');
     window.resetCatalogParticles?.();
@@ -107,14 +108,16 @@
     } else slide(false);
     setTimeout(() => {
       if (token !== generation || !preview) return;
-      // originalGo calls the wrapped render; temporarily release its cancellation guard.
+      // Keep the outgoing paper color pinned while render() builds the target page,
+      // then let Web Animations interpolate continuously to the new paper color.
       turning = false;
       originalGo(index);
       turning = true;
       const toPaper = paper();
-      animate(backdrop, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 740);
-      animate(canvas, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 740);
-      animate(document.body, [{backgroundColor:fromDesk},{backgroundColor:theme().desk}], 740);
+      backdrop.style.backgroundColor = fromPaper;
+      animate(backdrop, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 900);
+      animate(canvas, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 900);
+      animate(document.body, [{backgroundColor:fromDesk},{backgroundColor:theme().desk}], 900);
       if (isCover()) {
         // Keep the cover itself stationary: only its typography fades in, matching catalog text.
         api()?.resume();
