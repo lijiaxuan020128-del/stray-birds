@@ -24,6 +24,7 @@
   const originalRender = render;
   const isCover = () => page()?.type === 'cover';
   const paper = () => isCover() ? page().cover?.paper || '#76708e' : theme().paper;
+  const visiblePaper = () => isCover() ? paper() : getComputedStyle(canvas).backgroundColor || paper();
   const api = () => { try { return cover.contentWindow?.coverMotion; } catch { return null; } };
   function syncSurface() {
     backdrop.style.backgroundColor = transitionPaper || paper();
@@ -97,9 +98,9 @@
     if (!Number.isInteger(index) || index < 0 || index >= book.pages.length || index === pi) return;
     if (turning) return;
     if (!preview || reduced.matches) { originalGo(index); syncSurface(); return; }
-    const token = ++generation, fromCover = isCover(), fromPaper = paper();
+    const token = ++generation, fromCover = isCover(), fromPaper = visiblePaper();
     const targetPage = book.pages[index];
-    const targetPaper = targetPage?.type === 'cover' ? targetPage.cover?.paper || '#76708e' : (targetPage?.theme?.paper || book.theme?.paper || theme().paper);
+    const targetIsCover = targetPage?.type === 'cover';
     const fromDesk = getComputedStyle(document.body).backgroundColor;
     const direction = index > pi ? 1 : -1;
     transitionPaper = fromPaper;
@@ -116,12 +117,15 @@
       turning = false;
       originalGo(index);
       turning = true;
-      const toPaper = targetPaper || paper();
+      // Read the target page's actually rendered color. This preserves every page's saved theme;
+      // the animation is temporary and is cancelled at finish(), revealing the untouched target color.
+      const toPaper = targetIsCover ? paper() : getComputedStyle(canvas).backgroundColor || paper();
       transitionPaper = fromPaper;
       backdrop.style.backgroundColor = fromPaper;
-      // Never animate or overwrite #canvas background: render/theme owns catalog colors.
-      // Only the independent backdrop interpolates between the two page papers.
       animate(backdrop, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 900);
+      if (!fromCover && !targetIsCover) {
+        animate(canvas, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 900);
+      }
       animate(document.body, [{backgroundColor:fromDesk},{backgroundColor:theme().desk}], 900);
       if (isCover()) {
         coverEntering = true;
