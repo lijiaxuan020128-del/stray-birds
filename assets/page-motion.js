@@ -97,6 +97,7 @@
   go = function (index) {
     if (!Number.isInteger(index) || index < 0 || index >= book.pages.length || index === pi) return;
     if (turning) return;
+    if (preview) window.dispatchEvent(new Event('book-page-turn'));
     if (!preview || reduced.matches) { originalGo(index); syncSurface(); return; }
     const token = ++generation, fromCover = isCover(), fromPaper = visiblePaper();
     const targetPage = book.pages[index];
@@ -170,7 +171,7 @@
   }
   cover.addEventListener('load', bindCover); bindCover();
   ['pointermove','click'].forEach(type => window.addEventListener(type, e => {
-    if (turning && e.target.closest?.('#frame')) { e.stopImmediatePropagation(); if (type === 'click') e.preventDefault(); }
+    if (turning && e.target.closest?.('#frame') && !e.target.closest?.('.bookAudioToggle')) { e.stopImmediatePropagation(); if (type === 'click') e.preventDefault(); }
   }, true));
   function tick(now) {
     const dt = Math.min(.033, (now-last)/1000); last=now;
