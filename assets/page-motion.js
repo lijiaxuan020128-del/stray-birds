@@ -117,13 +117,13 @@
       turning = false;
       originalGo(index);
       turning = true;
-      // Read the target page's actually rendered color. This preserves every page's saved theme;
-      // the animation is temporary and is cancelled at finish(), revealing the untouched target color.
       const toPaper = targetIsCover ? paper() : getComputedStyle(canvas).backgroundColor || paper();
       transitionPaper = fromPaper;
       backdrop.style.backgroundColor = fromPaper;
       animate(backdrop, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 900);
-      if (!fromCover && !targetIsCover) {
+      // The catalog canvas participates in the temporary color interpolation whenever the target is a catalog page.
+      // Its real page color is never saved or changed; finish() cancels this animation and reveals render()'s untouched value.
+      if (!targetIsCover) {
         animate(canvas, [{backgroundColor:fromPaper},{backgroundColor:toPaper}], 900);
       }
       animate(document.body, [{backgroundColor:fromDesk},{backgroundColor:theme().desk}], 900);
