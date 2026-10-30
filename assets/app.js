@@ -31,6 +31,7 @@ function resize(){
     frame.style.setProperty('--preview-height',760*scale+'px');
   }else{
     scale=Math.max(1,frame.clientWidth)/1200;
+    frame.style.setProperty('--preview-scale',String(scale));
   }
   canvas.style.transform='scale('+scale+')';
   frame.style.height=760*scale+'px';
