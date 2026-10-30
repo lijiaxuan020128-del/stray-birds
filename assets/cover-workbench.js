@@ -18,6 +18,20 @@ const label=document.createElement('label');label.className='field';label.textCo
 }else{document.querySelector('#canvas').prepend(bg);const dest=document.querySelector('#inspector select');if(dest)Array.from(dest.options).filter(o=>o.value==='0').forEach(o=>o.remove());}
 };
 const oldGo=go;go=function(i){if(i>=0&&i<book.pages.length)oldGo(i);};
+// 读者模式：书内翻页压入历史，浏览器「返回」回到上一页/封面而不是退出网页。
+if(window.READ_MODE){
+  let popRestore=false;
+  const historyGo=go;
+  go=function(i){
+    if(popRestore){popRestore=false;historyGo(i);return;}
+    if(Number.isInteger(i)&&i!==pi&&i>=0&&i<book.pages.length){try{history.pushState({readPi:i},'');}catch{}}
+    historyGo(i);
+  };
+  window.addEventListener('popstate',e=>{
+    const target=e.state&&Number.isInteger(e.state.readPi)?e.state.readPi:0;
+    if(target!==pi){popRestore=true;go(target);}
+  });
+}
 document.querySelector('#mode').onclick=()=>{preview=!preview;if(preview){pi=0;selected=null;}document.body.classList.toggle('preview',preview);render();};
 const oldUp=document.querySelector('#pageUp').onclick;document.querySelector('#pageUp').onclick=()=>{if(pi>1)oldUp();};
 const oldDelete=document.querySelector('#deletePage').onclick;document.querySelector('#deletePage').onclick=()=>{if(!isCover()&&book.pages.length>2)oldDelete();};
