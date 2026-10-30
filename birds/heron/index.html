@@ -40,17 +40,22 @@
       const call=new Audio('https://commons.wikimedia.org/wiki/Special:Redirect/file/Ardea%20cinerea%20-%20Grey%20Heron%20XC531166.mp3');
       call.preload='auto';
       call.volume=.72;
-      function stop(){call.pause();try{call.currentTime=0}catch{}}
+      function parentAudio(){try{return window.parent&&window.parent!==window?window.parent.bookAudio:null}catch{return null}}
+      function stop(){call.pause();try{call.currentTime=0}catch{}button.textContent='♪ 鸟鸣';button.setAttribute('aria-label','播放苍鹭叫声')}
       function playFromStart(){
+        const audio=parentAudio();
+        if(audio&&!audio.isEffectsEnabled?.()){stop();return;}
         stop();
-        call.play().then(()=>{button.textContent='♪ 再次播放';button.setAttribute('aria-label','从头播放苍鹭叫声')}).catch(()=>{});
+        const play=audio?.playEffect?audio.playEffect(call):call.play().then(()=>true).catch(()=>false);
+        Promise.resolve(play).then(ok=>{if(ok!==false){button.textContent='♪ 再次播放';button.setAttribute('aria-label','从头播放苍鹭叫声')}});
       }
       button.addEventListener('click',playFromStart);
-      call.addEventListener('ended',()=>{button.textContent='♪ 鸟鸣';button.setAttribute('aria-label','播放苍鹭叫声')});
+      call.addEventListener('ended',stop);
       window.stopHeronCall=stop;
       window.addEventListener('pagehide',stop);
       window.addEventListener('beforeunload',stop);
       document.addEventListener('visibilitychange',()=>{if(document.hidden)stop()});
+      try{window.parent?.addEventListener('book-effects-toggle',e=>{if(e.detail?.enabled===false)stop()})}catch{}
     })();
     (function mountHeronCanvas(){const mount=document.getElementById('sketchMount');const move=()=>{const canvas=document.querySelector('canvas.p5Canvas');if(canvas&&canvas.parentElement!==mount)mount.appendChild(canvas)};new MutationObserver(move).observe(document.body,{childList:true,subtree:true});move()})();
     (function pageControls(){const back=document.getElementById('backToCatalog'),full=document.getElementById('pageFullscreen');back.addEventListener('click',()=>{window.stopHeronCall?.();if(window.parent&&window.parent!==window)window.parent.postMessage({type:'stray-birds-close'},location.origin);else location.href='../../'});full.addEventListener('click',()=>{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'stray-birds-fullscreen'},location.origin);else if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()});document.addEventListener('fullscreenchange',()=>{full.textContent=document.fullscreenElement?'退出全屏':'全屏观看 ↗'})})();
