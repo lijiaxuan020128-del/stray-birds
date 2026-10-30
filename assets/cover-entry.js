@@ -1,11 +1,13 @@
 (() => {
  const url=new URL(location.href);
  if(url.searchParams.get('catalog')!=='1'){
-   // 根链接 = 读者模式：直接进入整本书（封面开头），没有编辑入口。
+   // 首次无参数打开 = 读者模式：原地切换成正式链接，不做整页重定向（避免工作台闪现数秒）。
    const params=new URLSearchParams(url.search);
    params.set('catalog','1');params.set('read','1');
-   const target=new URL('index.html',url);target.search=params.toString();target.hash=url.hash;
-   location.replace(target.href);return;
+   const merged=new URL(url);merged.search=params.toString();merged.hash=url.hash;
+   try{history.replaceState(null,'',merged.href)}catch{}
+   window.READ_MODE=true;
+   document.documentElement.classList.add('readMode');
  }
  if(url.searchParams.get('read')==='1'){window.READ_MODE=true;document.documentElement.classList.add('readMode');}
  async function start(){
