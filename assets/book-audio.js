@@ -7,6 +7,7 @@
   const music = new Audio('assets/audio/piano.mp3');
   const turn = new Audio('assets/audio/page-turn.mp3');
   const hover = new Audio('assets/audio/bird-hover.mp3');
+  const wing = new Audio('assets/audio/wing-flap.mp3');
   music.loop = true;
   music.volume = .45;
   music.preload = 'auto';
@@ -14,14 +15,19 @@
   turn.preload = 'auto';
   hover.volume = .10;
   hover.preload = 'auto';
+  wing.volume = .34;
+  wing.preload = 'auto';
+  wing.loop = true;
   music.id = 'bookBackgroundMusic';
   turn.id = 'bookPageTurnSound';
   hover.id = 'bookBirdHoverSound';
-  music.hidden = turn.hidden = hover.hidden = true;
-  document.body.append(music, turn, hover);
+  wing.id = 'bookBirdEntrySound';
+  music.hidden = turn.hidden = hover.hidden = wing.hidden = true;
+  document.body.append(music, turn, hover, wing);
 
   let musicEnabled = true;
   let effectsEnabled = true;
+  let wingWanted = false;
 
   const controls = document.createElement('div');
   controls.className = 'bookAudioControls';
@@ -50,12 +56,25 @@
     effectsButton.textContent = effectsEnabled ? '♪ 音效' : '♪ 音效已关闭';
     effectsButton.setAttribute('aria-label', effectsEnabled ? '关闭音效' : '开启音效');
     effectsButton.setAttribute('aria-pressed', String(effectsEnabled));
-    effectsButton.title = effectsEnabled ? '关闭翻页、标签触碰和鸟鸣等音效' : '开启翻页、标签触碰和鸟鸣等音效';
+    effectsButton.title = effectsEnabled ? '关闭翻页、标签触碰、进入效果页和鸟鸣等音效' : '开启翻页、标签触碰、进入效果页和鸟鸣等音效';
   }
 
   function startMusic() {
     if (!musicEnabled || !music.paused) return;
     music.play().then(sync).catch(sync);
+  }
+
+  function startWing() {
+    wingWanted = true;
+    if (!effectsEnabled) return;
+    try { wing.currentTime = 0; } catch {}
+    wing.play().catch(() => {});
+  }
+
+  function stopWing() {
+    wingWanted = false;
+    wing.pause();
+    try { wing.currentTime = 0; } catch {}
   }
 
   function unlock(event) {
@@ -81,6 +100,11 @@
       turn.currentTime = 0;
       hover.pause();
       hover.currentTime = 0;
+      wing.pause();
+      wing.currentTime = 0;
+    } else if (wingWanted) {
+      try { wing.currentTime = 0; } catch {}
+      wing.play().catch(() => {});
     }
     sync();
     window.dispatchEvent(new CustomEvent('book-effects-toggle', {detail:{enabled:effectsEnabled}}));
@@ -129,8 +153,11 @@
     music,
     turn,
     hover,
+    wing,
     isMusicEnabled: () => musicEnabled,
     isEffectsEnabled: () => effectsEnabled,
+    startBirdEntrySound: startWing,
+    stopBirdEntrySound: stopWing,
     playEffect(audio) {
       if (!effectsEnabled || !audio) return Promise.resolve(false);
       try { audio.currentTime = 0; } catch {}
