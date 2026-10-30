@@ -20,7 +20,7 @@
   style.textContent = `#heronCall{position:static;display:inline-block;vertical-align:middle;flex-shrink:0;margin-left:14px;padding:5px 9px;border:1px solid rgba(244,239,220,.25);background:transparent;color:rgb(244,239,220);font:9px Arial,"Microsoft Yahei",sans-serif;letter-spacing:1px;opacity:.62;cursor:pointer;transform:translateY(-1px);transition:.18s ease}#heronCall:hover:not(:disabled){opacity:.95;background:rgba(244,239,220,.07);border-color:rgba(244,239,220,.42)}#heronCall:disabled{cursor:default} `;
   document.head.append(style);
   if (name === '震旦鸦雀' || !recordings[name]) {
-    button.textContent = name === '震旦鸦雀' ? '出于保护目的暂不展示' : '鸟鸣暂未提供';
+    button.textContent = name === '震旦鸦雀' ? '出于保护目的暂不展示鸟鸣' : '鸟鸣暂未提供';
     button.disabled = true;
     button.setAttribute('aria-label', button.textContent);
     button.title = button.textContent;
