@@ -3,87 +3,141 @@
   'use strict';
   const header = document.querySelector('.bookIdentityFrame');
   if (!header || window.bookAudio) return;
+
   const music = new Audio('assets/audio/piano.mp3');
   const turn = new Audio('assets/audio/page-turn.mp3');
   const hover = new Audio('assets/audio/bird-hover.mp3');
-  hover.volume = .10;
-  hover.preload = 'auto';
-  hover.id = 'bookBirdHoverSound';
   music.loop = true;
   music.volume = .45;
   music.preload = 'auto';
   turn.volume = .65;
   turn.preload = 'auto';
+  hover.volume = .10;
+  hover.preload = 'auto';
   music.id = 'bookBackgroundMusic';
   turn.id = 'bookPageTurnSound';
+  hover.id = 'bookBirdHoverSound';
   music.hidden = turn.hidden = hover.hidden = true;
   document.body.append(music, turn, hover);
-  let enabled = true;
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'bookAudioToggle';
-  button.style.cssText = 'position:absolute;right:48px;top:16px;min-height:36px;padding:7px 11px;border:1px solid currentColor;border-radius:20px;background:transparent;color:inherit;font:11px/18px Arial,"Microsoft Yahei",sans-serif;letter-spacing:1px;cursor:pointer;pointer-events:auto';
-  header.append(button);
-  function sync() {
-    const pending = enabled && music.paused;
-    button.textContent = enabled ? (pending ? '♫ 开启声音' : '♫ 声音已开启') : '♫ 声音已关闭';
-    button.setAttribute('aria-label', enabled && !pending ? '关闭全部声音' : '开启全部声音');
-    button.setAttribute('aria-pressed', String(enabled && !pending));
-    button.title = pending ? '点击开启音乐、翻页声和标签音效' : button.getAttribute('aria-label');
+
+  let musicEnabled = true;
+  let effectsEnabled = true;
+
+  const controls = document.createElement('div');
+  controls.className = 'bookAudioControls';
+  controls.style.cssText = 'position:absolute;right:48px;top:16px;display:flex;gap:8px;align-items:center;pointer-events:auto';
+
+  function makeButton(className) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = className;
+    b.style.cssText = 'min-height:36px;padding:7px 11px;border:1px solid currentColor;border-radius:20px;background:transparent;color:inherit;font:11px/18px Arial,"Microsoft Yahei",sans-serif;letter-spacing:1px;cursor:pointer;pointer-events:auto';
+    controls.append(b);
+    return b;
   }
-  function start() {
-    if (!enabled || !music.paused) return;
+
+  const musicButton = makeButton('bookMusicToggle');
+  const effectsButton = makeButton('bookEffectsToggle');
+  header.append(controls);
+
+  function sync() {
+    const musicPending = musicEnabled && music.paused;
+    musicButton.textContent = musicEnabled ? (musicPending ? '♫ 开启音乐' : '♫ 背景音乐') : '♫ 音乐已关闭';
+    musicButton.setAttribute('aria-label', musicEnabled && !musicPending ? '关闭背景音乐' : '开启背景音乐');
+    musicButton.setAttribute('aria-pressed', String(musicEnabled && !musicPending));
+    musicButton.title = musicPending ? '点击开启钢琴背景音乐' : musicButton.getAttribute('aria-label');
+
+    effectsButton.textContent = effectsEnabled ? '♪ 音效' : '♪ 音效已关闭';
+    effectsButton.setAttribute('aria-label', effectsEnabled ? '关闭音效' : '开启音效');
+    effectsButton.setAttribute('aria-pressed', String(effectsEnabled));
+    effectsButton.title = effectsEnabled ? '关闭翻页、标签触碰和鸟鸣等音效' : '开启翻页、标签触碰和鸟鸣等音效';
+  }
+
+  function startMusic() {
+    if (!musicEnabled || !music.paused) return;
     music.play().then(sync).catch(sync);
   }
+
   function unlock(event) {
-    if (event.target.closest?.('.bookAudioToggle')) return;
-    start();
+    if (event.target.closest?.('.bookAudioControls')) return;
+    startMusic();
   }
-  button.addEventListener('click', () => {
-    if (enabled && !music.paused) {
-      enabled = false;
+
+  musicButton.addEventListener('click', () => {
+    if (musicEnabled && !music.paused) {
+      musicEnabled = false;
       music.pause();
+    } else {
+      musicEnabled = true;
+      startMusic();
+    }
+    sync();
+  });
+
+  effectsButton.addEventListener('click', () => {
+    effectsEnabled = !effectsEnabled;
+    if (!effectsEnabled) {
       turn.pause();
       turn.currentTime = 0;
       hover.pause();
       hover.currentTime = 0;
-    } else { enabled = true; start(); }
+    }
     sync();
+    window.dispatchEvent(new CustomEvent('book-effects-toggle', {detail:{enabled:effectsEnabled}}));
   });
+
   function bind(doc) {
     ['pointerdown','click','keydown','wheel','touchend'].forEach(type => doc.addEventListener(type, unlock, {capture:true,passive:true}));
   }
   bind(document);
+
   const cover = document.querySelector('#coverSurface');
   const bound = new WeakSet();
   function bindCover() {
-    try { const doc = cover?.contentDocument; if(doc && !bound.has(doc)) {bound.add(doc);bind(doc);} } catch {}
+    try {
+      const doc = cover?.contentDocument;
+      if (doc && !bound.has(doc)) { bound.add(doc); bind(doc); }
+    } catch {}
   }
   cover?.addEventListener('load', bindCover);
   bindCover();
+
   window.addEventListener('book-page-turn', () => {
-    if (!enabled) return;
-    start();
+    if (!effectsEnabled) return;
     turn.currentTime = 0;
     turn.play().catch(() => {});
   });
-  // Delegation also covers labels created by later uploads or page renders.
+
   let lastHover = -Infinity;
   document.addEventListener('pointerover', event => {
-    if (!enabled || music.paused || !preview || event.pointerType === 'touch' || document.body.classList.contains('windTurning')) return;
+    if (!effectsEnabled || !preview || event.pointerType === 'touch' || document.body.classList.contains('windTurning')) return;
     const tag = event.target.closest?.('#canvas .item.tag');
     if (!tag || (event.relatedTarget && tag.contains(event.relatedTarget))) return;
     const now = performance.now();
     if (now - lastHover < 200) return;
     lastHover = now;
-    hover.volume = Math.min(.10, music.volume * .25);
+    hover.volume = .10;
     hover.currentTime = 0;
     hover.play().catch(() => {});
   }, {passive:true});
+
   music.addEventListener('playing', sync);
   music.addEventListener('pause', sync);
   music.addEventListener('error', sync);
-  window.bookAudio = {music, turn, hover};
+
+  window.bookAudio = {
+    music,
+    turn,
+    hover,
+    isMusicEnabled: () => musicEnabled,
+    isEffectsEnabled: () => effectsEnabled,
+    playEffect(audio) {
+      if (!effectsEnabled || !audio) return Promise.resolve(false);
+      try { audio.currentTime = 0; } catch {}
+      return audio.play().then(() => true).catch(() => false);
+    }
+  };
+
   sync();
-  start();
+  startMusic();
 })();
