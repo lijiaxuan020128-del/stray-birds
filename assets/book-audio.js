@@ -5,7 +5,7 @@
   if (!header || window.bookAudio) return;
 
   const VOLUME_KEY = 'stray-birds-audio-v1';
-  const defaultVolumes = {music: .45, turn: .65, hover: .10, wing: .8, call: .72};
+  const defaultVolumes = {music: .45, turn: .65, hover: .10, wing: 1, call: .72};
   let volumes = {...defaultVolumes};
   try { Object.assign(volumes, JSON.parse(localStorage.getItem(VOLUME_KEY) || '{}')); } catch {}
   for (const k of Object.keys(defaultVolumes)) {
