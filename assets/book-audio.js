@@ -7,7 +7,7 @@
   const music = new Audio('assets/audio/piano.mp3');
   const turn = new Audio('assets/audio/page-turn.mp3');
   const hover = new Audio('assets/audio/bird-hover.mp3');
-  const wing = new Audio('assets/audio/wing-flap-2.mp3');
+  const wing = new Audio('assets/audio/wing-flap.mp3');
   music.loop = true;
   music.volume = .45;
   music.preload = 'auto';
@@ -27,8 +27,6 @@
 
   let musicEnabled = true;
   let effectsEnabled = true;
-  let wingWanted = false;
-  let wingTimer = 0;
 
   const controls = document.createElement('div');
   controls.className = 'bookAudioControls';
@@ -65,20 +63,16 @@
     music.play().then(sync).catch(sync);
   }
 
-  function stopWing(resetWanted = true) {
-    clearTimeout(wingTimer);
-    wingTimer = 0;
-    if (resetWanted) wingWanted = false;
+  function startWing() {
+    if (!effectsEnabled) return;
     wing.pause();
     try { wing.currentTime = 0; } catch {}
+    wing.play().catch(() => {});
   }
 
-  function startWing() {
-    stopWing(false);
-    wingWanted = true;
-    if (!effectsEnabled) return;
-    wing.play().catch(() => {});
-    wingTimer = window.setTimeout(() => stopWing(true), 3000);
+  function stopWing() {
+    wing.pause();
+    try { wing.currentTime = 0; } catch {}
   }
 
   function unlock(event) {
@@ -104,9 +98,7 @@
       turn.currentTime = 0;
       hover.pause();
       hover.currentTime = 0;
-      stopWing(false);
-    } else if (wingWanted) {
-      startWing();
+      stopWing();
     }
     sync();
     window.dispatchEvent(new CustomEvent('book-effects-toggle', {detail:{enabled:effectsEnabled}}));
@@ -159,7 +151,7 @@
     isMusicEnabled: () => musicEnabled,
     isEffectsEnabled: () => effectsEnabled,
     startBirdEntrySound: startWing,
-    stopBirdEntrySound: () => stopWing(true),
+    stopBirdEntrySound: stopWing,
     playEffect(audio) {
       if (!effectsEnabled || !audio) return Promise.resolve(false);
       try { audio.currentTime = 0; } catch {}
