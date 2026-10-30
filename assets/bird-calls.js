@@ -29,6 +29,18 @@
   const call = new Audio(new URL('audio/calls/' + recordings[name] + '.mp3', document.currentScript.src).href);
   call.preload = 'metadata';
   call.volume = .72;
+  // 鸟鸣音量跟随主页面「音效音量」面板的设置（localStorage + 实时事件）。
+  try {
+    const saved = JSON.parse(localStorage.getItem('stray-birds-audio-v1') || '{}');
+    const n = Number(saved.call);
+    if (Number.isFinite(n)) call.volume = Math.min(1, Math.max(0, n));
+  } catch {}
+  try {
+    parent.addEventListener('book-audio-volumes', e => {
+      const v = Number(e.detail?.call);
+      if (Number.isFinite(v)) call.volume = Math.min(1, Math.max(0, v));
+    });
+  } catch {}
   call.loop = false;
   let timer = null, generation = 0;
   function parentAudio() {
