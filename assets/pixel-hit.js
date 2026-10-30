@@ -106,8 +106,10 @@
   document.addEventListener('click',e=>{
     if(!preview)return;
 
-    const el=e.target.closest?e.target.closest('.item'):null;
-    if(!el)return;
+    // Decorative text/lines can cover the artwork; hit-test the whole catalog.
+    if(!e.target.closest?.('#canvas') || e.target.closest?.('button,a,input,select,textarea'))return;
+    if(e.detail===0)return; // Keep keyboard activation on the focused item.
+    const el=e.target.closest?.('.item');
 
     const hit=findHitAt(e.clientX,e.clientY);
     if(!hit){

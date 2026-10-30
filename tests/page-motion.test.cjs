@@ -22,7 +22,7 @@ function setup() {
   cover.contentWindow={coverMotion:{take(){takes++;return {width:1200,height:760,size:5,ink:'#fff',points:[{x:500,y:300,vx:60,vy:20,phase:1,tail:[499,299]}]};},resume(){resumes++;}}};
   const reduced={matches:false,addEventListener(){}};
   const book={pages:[{type:'cover',cover:{paper:'#76708e'},birds:[]},{birds:[{name:'new-upload',x:90,y:200,w:220,h:100,tag:{x:920,y:400,w:150,h:32}}]},{birds:[]}],particles:{enabled:true}};
-  const c={Event,document:doc,window:{dispatchEvent:e=>listeners[e.type]?.(e),addEventListener:(k,fn)=>listeners[k]=fn},matchMedia:()=>reduced,performance:{now:()=>time},requestAnimationFrame(){},devicePixelRatio:1,innerHeight:900,getComputedStyle:()=>({backgroundColor:'#222'}),setTimeout:(fn,ms)=>timers.push({at:time+ms,fn}),book,pi:0,preview:true,theme:()=>({paper:'#d8cfb8',desk:'#222',ink:'#333'})};
+  const c={Event,document:doc,window:{dispatchEvent:e=>listeners[e.type]?.(e),addEventListener:(k,fn)=>listeners[k]=fn},matchMedia:()=>reduced,performance:{now:()=>time},requestAnimationFrame(){},devicePixelRatio:1,innerHeight:900,getComputedStyle:()=>({backgroundColor:'#222'}),setTimeout:(fn,ms)=>{const t={at:time+ms,fn};timers.push(t);return t;},clearTimeout:t=>{timers=timers.filter(v=>v!==t);},book,pi:0,preview:true,theme:()=>({paper:'#d8cfb8',desk:'#222',ink:'#333'})};
   c.page=()=>book.pages[c.pi];c.render=()=>{};c.go=i=>{c.pi=i;c.render();};vm.createContext(c);vm.runInContext(source,c);
   function advance(ms){const end=time+ms;while(true){timers.sort((a,b)=>a.at-b.at);if(!timers.length||timers[0].at>end)break;const t=timers.shift();time=t.at;t.fn();}time=end;}
   function wheel(y,extra={}){let prevented=false;listeners.wheel({deltaY:y,deltaX:0,deltaMode:0,target:{closest:()=>null},preventDefault(){prevented=true;},...extra});return prevented;}
@@ -40,3 +40,5 @@ function setup() {
  const s=setup();s.c.go(1);s.advance(100);s.c.preview=false;s.c.render();s.advance(2000);assert.equal(s.c.pi,0);const n=s.animations.length;assert.equal(s.wheel(120),false);s.c.go(1);assert.equal(s.c.pi,1);assert.equal(s.animations.length,n);s.c.preview=true;s.reduced.matches=true;s.c.go(2);assert.equal(s.c.pi,2);assert.equal(s.animations.length,n);
  });
  test('zoom gestures and input fields retain their default behavior',()=>{const s=setup();assert.equal(s.wheel(120,{ctrlKey:true}),false);assert.equal(s.wheel(120,{target:{closest:()=>({})}}),false);assert.equal(s.c.pi,0);});
+
+test('animation setup failure releases the catalog click lock',()=>{const s=setup();s.c.window.resetCatalogParticles=()=>{throw Error('interrupted effect')};assert.throws(()=>s.c.go(1));assert.equal(s.frame.attrs['aria-busy'],'true');s.advance(2200);assert.equal(s.frame.attrs['aria-busy'],undefined);delete s.c.window.resetCatalogParticles;s.c.go(1);s.advance(1560);assert.equal(s.c.pi,1);});

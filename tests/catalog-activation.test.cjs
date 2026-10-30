@@ -1,0 +1,6 @@
+const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const source=fs.readFileSync('assets/heron-catalog-particles.js','utf8');const wrapper=source.slice(source.indexOf('const old=activate;'),source.indexOf('const oldRender=render;'));
+function setup(ensure){let opens=0;const timers=new Map(),p={};const el={isConnected:true};const c={preview:true,C:{苍鹭:[]},name:()=> '苍鹭',document:{querySelectorAll:()=>[el]},page:()=>p,ensure,activate:()=>opens++,setTimeout:(f,t)=>{timers.set(f,t);return f},clearTimeout:f=>timers.delete(f)};vm.runInNewContext(wrapper,c);return {c,timers,get opens(){return opens}}}
+test('stalled particle mask cannot block navigation',()=>{const s=setup(()=>new Promise(()=>{}));s.c.activate({name:'苍鹭'},'bird');assert.equal(s.opens,0);[...s.timers.keys()][0]();assert.equal(s.opens,1)});
+test('failed mask opens once and clears fallback',async()=>{const s=setup(()=>Promise.reject(Error('decode failed')));s.c.activate({name:'苍鹭'},'bird');await new Promise(setImmediate);assert.equal(s.opens,1);assert.equal(s.timers.size,0)});
+test('leaving preview cancels a delayed open',()=>{const s=setup(()=>new Promise(()=>{}));s.c.activate({name:'苍鹭'},'bird');s.c.preview=false;[...s.timers.keys()][0]();assert.equal(s.opens,0)});

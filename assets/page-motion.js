@@ -18,6 +18,7 @@
   layer.setAttribute('aria-hidden', 'true');
   frame.append(layer);
   const ctx = layer.getContext('2d');
+  let unlockTimer = null;
   let turning = false, generation = 0, animations = [], motes = [], flow = null, transitionPaper = null, coverEntering = false;
   let last = performance.now(), wheelSum = 0, wheelLast = 0, wheelSign = 0, quietUntil = 0;
   const originalGo = go;
@@ -48,7 +49,8 @@
     } catch { return false; }
   }
   function finish() {
-    animations.forEach(a => a.cancel()); animations = [];
+    clearTimeout(unlockTimer); unlockTimer = null;
+    animations.forEach(a => { try { a.cancel(); } catch {} }); animations = [];
     turning = false; flow = null; transitionPaper = null;
     document.body.classList.remove('windTurning');
     frame.removeAttribute('aria-busy');
@@ -107,6 +109,8 @@
     transitionPaper = fromPaper;
     turning = true;
     document.body.classList.add('windTurning'); frame.setAttribute('aria-busy', 'true');
+    // A failed animation or interrupted navigation must never leave clicks locked.
+    unlockTimer = setTimeout(() => { if (token === generation && turning) { generation++; finish(); } }, 2200);
     window.resetCatalogParticles?.();
     startWind(direction);
     if (fromCover) {

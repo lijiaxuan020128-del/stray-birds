@@ -40,5 +40,5 @@
   window.addEventListener('resize',()=>{try{if(frame.contentDocument)align(frame.contentDocument)}catch{}});window.addEventListener('message',e=>{if(e.source===frame.contentWindow&&e.data?.type==='stray-birds-close')close()});
   function open(url,n){if(panel.open)return;const target=new URL(url,location.href);if(!['http:','https:'].includes(target.protocol)){toast('效果链接格式不正确');return}previousFocus=document.activeElement;frame.dataset.bird=n||'';frame.style.visibility='hidden';startLoader(n);window.bookAudio?.startBirdEntrySound?.();frame.src=target.href;panel.showModal();try{history.pushState({effectOpen:true,effectUrl:target.href},'')}catch{}}
   function builtIn(n){const x=pages.find(([k])=>n.includes(k));return x?x[1]:''}const originalActivate=activate;activate=function(b,part){if(!preview)return originalActivate(b,part);const u=builtIn(b.name);if(u)return open(u,b.name);if(b.url)return open(b.url,b.name);toast('这只鸟的效果链接还没有填写')};
-  const s=document.createElement('script');s.src='assets/heron-catalog-particles.js?v=20261027-continuous8';document.head.append(s);
+  const s=document.createElement('script');s.src='assets/heron-catalog-particles.js?v=clickfix1';document.head.append(s);
 })();
