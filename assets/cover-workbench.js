@@ -23,5 +23,8 @@ const oldUp=document.querySelector('#pageUp').onclick;document.querySelector('#p
 const oldDelete=document.querySelector('#deletePage').onclick;document.querySelector('#deletePage').onclick=()=>{if(!isCover()&&book.pages.length>2)oldDelete();};
 const save=document.querySelector('#save'),oldSave=save.onclick;save.onclick=()=>{try{localStorage.setItem('stray-birds-cover-v2',JSON.stringify(book.pages[0].cover));}catch{}oldSave();};
 window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==surface.contentWindow)return;if(e.data?.type==='cover-ready')send();if(e.data?.type==='cover-enter')go(1);if(e.data?.type==='cover-change'){book.pages[0].cover={...defaults,...e.data.config};changed();render();}});
-ensure();if(enterDirectory)pi=1;render();
+ensure();if(enterDirectory)pi=1;
+// 读者模式：直接进入预览，不出现编辑入口。
+if(window.READ_MODE&&!preview){preview=true;selected=null;document.body.classList.add('preview');$('#mode').textContent='预览全书 ↗';}
+render();
 })();
