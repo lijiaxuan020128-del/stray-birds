@@ -15,7 +15,7 @@
   turn.preload = 'auto';
   hover.volume = .10;
   hover.preload = 'auto';
-  wing.volume = .55;
+  wing.volume = .8;
   wing.preload = 'auto';
   wing.loop = false;
   music.id = 'bookBackgroundMusic';
