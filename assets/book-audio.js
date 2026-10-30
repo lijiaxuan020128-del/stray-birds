@@ -7,7 +7,7 @@
   const music = new Audio('assets/audio/piano.mp3');
   const turn = new Audio('assets/audio/page-turn.mp3');
   const hover = new Audio('assets/audio/bird-hover.mp3');
-  const wing = new Audio('assets/audio/wing-flap.mp3');
+  const wing = new Audio('assets/audio/wing-flap-2.mp3');
   music.loop = true;
   music.volume = .45;
   music.preload = 'auto';
@@ -17,7 +17,7 @@
   hover.preload = 'auto';
   wing.volume = .34;
   wing.preload = 'auto';
-  wing.loop = true;
+  wing.loop = false;
   music.id = 'bookBackgroundMusic';
   turn.id = 'bookPageTurnSound';
   hover.id = 'bookBirdHoverSound';
@@ -28,6 +28,7 @@
   let musicEnabled = true;
   let effectsEnabled = true;
   let wingWanted = false;
+  let wingTimer = 0;
 
   const controls = document.createElement('div');
   controls.className = 'bookAudioControls';
@@ -64,17 +65,20 @@
     music.play().then(sync).catch(sync);
   }
 
-  function startWing() {
-    wingWanted = true;
-    if (!effectsEnabled) return;
-    try { wing.currentTime = 0; } catch {}
-    wing.play().catch(() => {});
-  }
-
-  function stopWing() {
-    wingWanted = false;
+  function stopWing(resetWanted = true) {
+    clearTimeout(wingTimer);
+    wingTimer = 0;
+    if (resetWanted) wingWanted = false;
     wing.pause();
     try { wing.currentTime = 0; } catch {}
+  }
+
+  function startWing() {
+    stopWing(false);
+    wingWanted = true;
+    if (!effectsEnabled) return;
+    wing.play().catch(() => {});
+    wingTimer = window.setTimeout(() => stopWing(true), 3000);
   }
 
   function unlock(event) {
@@ -100,11 +104,9 @@
       turn.currentTime = 0;
       hover.pause();
       hover.currentTime = 0;
-      wing.pause();
-      wing.currentTime = 0;
+      stopWing(false);
     } else if (wingWanted) {
-      try { wing.currentTime = 0; } catch {}
-      wing.play().catch(() => {});
+      startWing();
     }
     sync();
     window.dispatchEvent(new CustomEvent('book-effects-toggle', {detail:{enabled:effectsEnabled}}));
@@ -157,7 +159,7 @@
     isMusicEnabled: () => musicEnabled,
     isEffectsEnabled: () => effectsEnabled,
     startBirdEntrySound: startWing,
-    stopBirdEntrySound: stopWing,
+    stopBirdEntrySound: () => stopWing(true),
     playEffect(audio) {
       if (!effectsEnabled || !audio) return Promise.resolve(false);
       try { audio.currentTime = 0; } catch {}
