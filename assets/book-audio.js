@@ -45,7 +45,7 @@
     const b = document.createElement('button');
     b.type = 'button';
     b.className = className;
-    b.style.cssText = 'min-height:36px;padding:7px 11px;border:1px solid currentColor;border-radius:20px;background:transparent;color:inherit;font:11px/18px Arial,"Microsoft Yahei",sans-serif;letter-spacing:1px;cursor:pointer;pointer-events:auto';
+    b.style.cssText = 'min-height:36px;padding:7px 11px;border:1px solid currentColor;border-radius:var(--corner,0px);background:transparent;color:inherit;font:11px/18px Arial,"Microsoft Yahei",sans-serif;letter-spacing:1px;cursor:pointer;pointer-events:auto';
     controls.append(b);
     return b;
   }
