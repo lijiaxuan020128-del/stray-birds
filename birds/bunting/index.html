@@ -1,55 +1,18 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>栗鹀 · 粒子习性</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#27252e}canvas{display:block;width:100%;height:100%}#status{position:fixed;left:18px;bottom:18px;color:#f4efdc;font:12px sans-serif;opacity:.7;pointer-events:none}</style></head><body><canvas id="scene"></canvas><div id="status" hidden></div><script>
-"use strict";
-/* 栗鹀 · 目录效果页；顶部中文参数可独立修改 */
-const 参数={
-  背景文件:"../../assets/bunting-habitat.jpg",
-  粒子颜色:"#C15A28",
-  粒子数量:8,
-  基础直径:20,
-  近处草地比例:1,
-  远处草地比例:.70,
-  灌木比例:.4,
-  草地初始占比:.60,
-  飞入草地概率:.60,
-  飞行速度:270,
-  跳跃速度:105,
-  走动速度:19,
-  最大同时飞行比例:.55,
-  草地行为:{跳跃:35,走动:20,啄食:15,短飞:10,飞向灌木:15,离开:5},
-  灌木行为:{停留:35,换枝:20,飞向草地:35,离开:10}
-};
-const W=1600,H=900,canvas=document.getElementById("scene"),ctx=canvas.getContext("2d"),status=document.getElementById("status");
-const bushes=[[.705,.30],[.735,.23],[.765,.32],[.795,.18],[.825,.27],[.855,.15],[.885,.26],[.915,.17],[.945,.25],[.975,.18],[.745,.37],[.825,.36],[.905,.34]];
-const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),ease=t=>{t=clamp(t,0,1);return t*t*(3-2*t)},dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),lerp=(a,b,t)=>a+(b-a)*t,copy=p=>({x:p.x,y:p.y});
-function weighted(o){let n=Object.values(o).reduce((a,b)=>a+b,0),v=Math.random()*n;for(let k in o){v-=o[k];if(v<=0)return k}return Object.keys(o)[0]}
-function grassTop(x){let u=x/W;if(u<.24)return lerp(.31,.35,u/.24)*H;if(u<.48)return lerp(.35,.44,(u-.24)/.24)*H;if(u<.7)return lerp(.44,.36,(u-.48)/.22)*H;return lerp(.36,.31,(u-.7)/.3)*H}
-function grass(p){let x=clamp(p.x,64,1536);return{x,y:clamp(p.y,grassTop(x)+23,864)}}
-function grassRandom(){let x=rnd(64,1536);return{x,y:rnd(grassTop(x)+23,864)}}
-function shrubRandom(){let p=bushes[Math.floor(Math.random()*bushes.length)];return{x:(p[0]+rnd(-.012,.012))*W,y:(p[1]+rnd(-.012,.012))*H}}
-function scaleAt(p,z){return z==="灌木"?参数.灌木比例:lerp(参数.远处草地比例,参数.近处草地比例,ease((p.y/H-.36)/.58))}
-function outer(p){let side=Math.floor(rnd(0,3));if(side===0)return{x:-90,y:clamp(p.y+rnd(-140,140),20,H-20)};if(side===1)return{x:W+90,y:clamp(p.y+rnd(-140,140),20,H-20)};return{x:rnd(190,1530),y:-90}}
-let birds=[];
-function free(z,self,near){let best=null,bestD=-1;for(let i=0;i<40;i++){let p=z==="灌木"?shrubRandom():near?grass({x:near.x+rnd(-300,300),y:near.y+rnd(-180,180)}):grassRandom();let nearest=Infinity;for(let b of birds){if(b===self||b.state==="外部"||b.state==="离开")continue;nearest=Math.min(nearest,dist(p,["飞行","飞入"].includes(b.state)?b.end:b.pos))}if(nearest>30)return p;if(nearest>bestD){best=p;bestD=nearest}}return best||(z==="灌木"?shrubRandom():grassRandom())}
-class Bird{
- constructor(z){this.zone=z;this.pos=free(z,null,null);this.sz=scaleAt(this.pos,z);this.speed=rnd(.75,1.25);this.state="停留";this.wait=0;this.rest()}
- rest(){this.state="停留";this.wait=rnd(this.zone==="灌木"?2:.2,this.zone==="灌木"?5.5:1)}
- canFly(){return birds.filter(b=>["飞行","飞入","离开"].includes(b.state)).length<Math.max(1,Math.floor(birds.length*参数.最大同时飞行比例))}
- choose(){let a=weighted(this.zone==="灌木"?参数.灌木行为:参数.草地行为);if(a==="停留"){this.rest();return}if(["跳跃","走动","啄食"].includes(a)){this.ground(a);return}if(!this.canFly()){this.rest();return}if(a==="离开"){this.fly(outer(this.pos),this.zone,"离开");return}let z=["飞向灌木","换枝"].includes(a)?"灌木":"草地";this.fly(free(z,this,a==="短飞"?this.pos:null),z,"飞行")}
- ground(a){this.state=a;this.elapsed=0;this.from=copy(this.pos);this.fromScale=this.sz;if(a==="啄食"){this.end=copy(this.pos);this.duration=rnd(.6,1.8);return}let theta=rnd(0,Math.PI*2),len=a==="跳跃"?rnd(14,42):rnd(19,47);this.end=grass({x:this.pos.x+Math.cos(theta)*len,y:this.pos.y+Math.sin(theta)*len});this.duration=a==="跳跃"?Math.max(.25,len/参数.跳跃速度+.15):rnd(1,2.5);this.endScale=scaleAt(this.end,"草地");this.hopHeight=rnd(5,15)}
- fly(p,z,state){this.state=state;this.from=copy(this.pos);this.end=copy(p);this.nextZone=z;this.fromScale=this.sz;this.endScale=scaleAt(p,z);this.elapsed=0;this.duration=Math.max(.65,dist(this.from,p)/(参数.飞行速度*this.speed));this.height=rnd(35,105);this.curve=rnd(-22,22)}
- update(dt){if(this.state==="外部"){this.wait-=dt;if(this.wait<=0&&this.canFly()){let z=Math.random()<参数.飞入草地概率?"草地":"灌木",p=free(z,this,null);this.pos=outer(p);this.sz=scaleAt(p,z)*rnd(.8,1.1);this.fly(p,z,"飞入")}return}
- if(this.state==="停留"){this.wait-=dt;if(this.wait<=0)this.choose();return}
- this.elapsed+=dt;let t=clamp(this.elapsed/this.duration,0,1),e=ease(t);
- if(["飞行","飞入","离开"].includes(this.state)){let h=Math.sin(Math.PI*e);this.pos.x=lerp(this.from.x,this.end.x,e)+Math.sin(Math.PI*2*e)*this.curve*h;this.pos.y=lerp(this.from.y,this.end.y,e)-this.height*h;this.sz=lerp(this.fromScale,this.endScale,ease(e));if(t>=1){this.pos=copy(this.end);this.sz=this.endScale;if(this.state==="离开"){this.state="外部";this.wait=rnd(1,4)}else{this.zone=this.nextZone;this.rest()}}return}
- if(this.state==="啄食"){this.pos.y=this.from.y+Math.max(0,Math.sin(this.elapsed*13))*2.2*Math.sin(Math.PI*t);if(t>=1){this.pos=copy(this.from);this.rest()}return}
- this.pos.x=lerp(this.from.x,this.end.x,e);this.pos.y=lerp(this.from.y,this.end.y,e)+(this.state==="跳跃"?-Math.sin(Math.PI*t)*this.hopHeight:Math.sin(t*Math.PI*8)*1.2*Math.sin(Math.PI*t));this.sz=lerp(this.fromScale,this.endScale,e);if(t>=1){this.pos=copy(this.end);this.zone="草地";this.rest()}
- }
- draw(){if(this.state==="外部")return;ctx.beginPath();ctx.arc(this.pos.x,this.pos.y,参数.基础直径*this.sz/2,0,Math.PI*2);ctx.fill()}
-}
-function reset(){birds=[];for(let i=0;i<参数.粒子数量;i++)birds.push(new Bird(Math.random()<参数.草地初始占比?"草地":"灌木"))}
-const bg=new Image();let loaded=false;bg.onload=()=>{loaded=true;status.hidden=true;start()};bg.onerror=()=>{status.textContent="栗鹀背景素材尚未上传至网站";status.hidden=false;start()};bg.src=参数.背景文件;
-function resize(){let d=Math.min(devicePixelRatio||1,2),w=Math.max(1,innerWidth),h=Math.max(1,innerHeight);canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);canvas.style.width=w+"px";canvas.style.height=h+"px";ctx.setTransform(d,0,0,d,0,0)}
-let started=false,last=0;function start(){if(started)return;started=true;resize();reset();requestAnimationFrame(draw)}
-function draw(now){let dt=clamp((now-last)/1000,0,.05);last=now;let w=innerWidth,h=innerHeight,s=Math.max(w/W,h/H);ctx.setTransform(canvas.width/w,0,0,canvas.height/h,0,0);ctx.clearRect(0,0,w,h);ctx.save();ctx.translate((w-W*s)/2,(h-H*s)/2);ctx.scale(s,s);if(loaded)ctx.drawImage(bg,0,0,W,H);else{ctx.fillStyle="#626b4c";ctx.fillRect(0,0,W,H)}ctx.fillStyle=参数.粒子颜色;for(let b of birds){b.update(dt);b.draw()}ctx.restore();requestAnimationFrame(draw)}
-window.addEventListener("resize",resize);window.addEventListener("keydown",e=>{if(e.key.toLowerCase()==="r")reset();if(e.key==="+"){参数.粒子数量++;reset()}if(e.key==="-"){参数.粒子数量=Math.max(1,参数.粒子数量-1);reset()}});
-</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>栗鹀 · 粒子习性</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#27252e}
+canvas{display:block}
+#loadStatus{position:fixed;inset:0;display:grid;place-items:center;color:#f4efdc;font:13px sans-serif}
+</style>
+<script src="p5.js"></script>
+</head>
+<body>
+<div id="loadStatus" role="status">正在载入栗鹀栖息地…</div>
+<script src="sketch.js?v=20261108-complete1"></script>
+</body>
+</html>
