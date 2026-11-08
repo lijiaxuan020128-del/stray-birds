@@ -57,6 +57,10 @@ const BUNTING_SETTINGS = {
   // 所有粒子统一使用的颜色
   particleColor: "#C15A28",
 
+  // 栗褐色描边，与羽色协调
+  particleStrokeColor: "#793A24",
+  particleStrokeWeight: 1.6,
+
   // 近处草地粒子的大小比例
   // 1表示使用完整基础直径
   nearGrassScale: 1.0,
@@ -1283,7 +1287,8 @@ new p5(function(sk) {
         return;
       }
 
-      sk.noStroke();
+      sk.stroke(cfg.particleStrokeColor);
+      sk.strokeWeight(cfg.particleStrokeWeight);
       sk.fill(cfg.particleColor);
 
       sk.circle(
