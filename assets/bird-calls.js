@@ -10,7 +10,8 @@
     '针尾沙锥':'XC840942', '大斑啄木鸟':'XC979809', '戴胜':'XC1029700',
     '斑头雁':'XC1046635', '普通翠鸟':'XC1052485', '珠颈斑鸠':'XC1054704',
     '小䴙䴘':'XC1101785', '黑水鸡':'XC1152369', '普通雨燕':'XC1172263',
-    '普通楼燕':'XC1172263', '家燕':'XC1166650'
+    '普通楼燕':'XC1172263', '家燕':'XC1166650',
+    '栗鹀':'bunting-user', '金翅雀':'XC1155228', '金腰燕':'XC1175024'
   };
   const button = document.getElementById('heronCall') || document.createElement('button');
   button.id = 'heronCall';
