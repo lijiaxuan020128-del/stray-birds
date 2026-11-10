@@ -41,6 +41,6 @@ if(!artRequested&&name==='金腰燕')crop('../red-rumped-swallow/artwork.png?v=s
 if(!artRequested&&name==='金翅雀')crop('../greenfinch/artwork.png?v=20261108-greenfinch1');
 if(!artRequested&&name==='栗鹀')crop('../bunting/artwork.png?v=20261108-complete1');
 if(!artRequested){const f=document.createElement('iframe');f.src='../../?bird-art='+encodeURIComponent(name);f.style.cssText='position:fixed;width:1px;height:1px;left:-10000px;top:-10000px;opacity:0;border:0';document.body.appendChild(f);f.onload=()=>{let n=0;const scan=()=>{n++;try{const doc=f.contentDocument,p=doc&&doc.querySelector('.item[aria-label="'+name+'"] img,.item[aria-label*="'+name+'"] img');if(p&&p.src){crop(p.src);f.remove();return}const bs=doc?Array.from(doc.querySelectorAll('#pages button')):[];if(bs.length)bs[(n-1)%bs.length].click();if(n<16)setTimeout(scan,160);else f.remove()}catch(e){f.remove()}};setTimeout(scan,300)}}
-</script><script src="../../assets/bird-calls.js?v=calls-20261109"></script></body></html>
+</script><script src="../../assets/bird-calls.js?v=calls-20261110-buzzard"></script></body></html>
 
 
