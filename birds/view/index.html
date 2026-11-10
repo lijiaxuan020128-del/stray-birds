@@ -44,15 +44,21 @@ const D={
 };
 const q=new URLSearchParams(location.search),name=q.get('bird')||'麻雀',d=D[name]||D['麻雀'];document.title=name+' · 飞鸟集';cn.textContent=name;en.textContent=d.en;category.textContent='FIELD NOTES · '+d.cat;oneBird.textContent='一只'+name;oneBirdEn.textContent='ONE '+d.en.toUpperCase();behavior.textContent=d.behavior;habitat.textContent=d.habitat;effect.src=d.url+'?embedded=1&v='+(name==='普通鵟'?'buzzard1':name==='金腰燕'?'swallow1':name==='金翅雀'?'20261108-greenfinch1':name==='栗鹀'?'20261108-complete1':'20261026-species2');
 
-if(name==='白鹡鸰'){
+if(['白鹡鸰','鸿雁','家燕','戴胜'].includes(name)){
   const info=document.querySelector('.species-info');
   const blocks=Array.from(info.querySelectorAll('.info-block'));
   const original=blocks.map(el=>el.innerHTML);
+  const cultureByBird={
+"鸿雁":[`<div class="info-index">01 / ORIGIN</div><h2>雁寄相思</h2><p>鸿雁迁徙往返、列阵飞行的形象，在中国古典文学中常寄托书信传情、羁旅思乡与离别相思。《汉书·苏武传》记载汉使借“雁足系帛书”之说追问苏武下落，后世由此衍生“雁足传书”的典故。古典诗词中的“鸿雁”“归雁”常泛指雁类，文化意象并不限于单一现代物种。</p><p class="culture-source">典故：《汉书·苏武传》</p>`,`<div class="info-index">02 / LITERATURE</div><h2>文学用典</h2><p><strong>唐 · 王湾</strong>：“乡书何处达？归雁洛阳边。”借归雁寄托家书与思乡之情。</p><p><strong>宋 · 李清照</strong>：“雁字回时，月满西楼。”以归雁衬托离别后的相思。</p><p><strong>元 · 马致远</strong>：“雁啼红叶天，人醉黄花地。”以秋雁营造清秋与离愁交织的意境。</p>`],
+"家燕":[`<div class="info-index">01 / ORIGIN</div><h2>燕归故园</h2><p>家燕属于燕科，迁徙归来、依屋筑巢的习性，与古典诗词中的燕子意象相契合。燕子常象征春归、故园与时序流转，诗人借其年年往返，寄托对往昔生活和人事变迁的感怀。古籍中的“燕”通常泛指燕类，并非专指家燕。</p><p class="culture-source">代表作品：刘禹锡《乌衣巷》</p>`,`<div class="info-index">02 / LITERATURE</div><h2>文学用典</h2><p><strong>唐 · 刘禹锡</strong>：“旧时王谢堂前燕，飞入寻常百姓家。”借燕子表现世事兴衰。</p><p><strong>宋 · 晏殊</strong>：“无可奈何花落去，似曾相识燕归来。”以归燕感怀时光流逝。</p><p><strong>宋 · 欧阳修</strong>：“燕子来时新社，梨花落后清明。”以燕归点明春日节令。</p>`],
+"戴胜":[`<div class="info-index">01 / ORIGIN</div><h2>戴胜降桑</h2><p>戴胜是中国古代物候记载中的代表性鸟类。《礼记·月令》以“戴胜降于桑”记录季春时节的自然变化，将戴胜的出现与桑树、蚕桑农事联系起来。后世延续这一物候，用鸟类活动标识暮春时序，体现传统农耕文化对自然节律的观察。</p><p class="culture-source">出处：《礼记·月令》</p>`,`<div class="info-index">02 / SEASONAL RECORDS</div><h2>典籍与物候</h2><p><strong>《礼记·月令》</strong>：“鸣鸠拂其羽，戴胜降于桑。”以戴胜出现记述季春物候。</p><p><strong>唐 · 元稹</strong>：“戴胜下时桑田绿。”将戴胜与谷雨前后的桑田春色相联系。</p><p><strong>七十二候</strong>：谷雨第三候“戴胜降于桑”，沿用以戴胜活动标识暮春的传统。</p>`]
+  };
   const culture=[
     `<div class="info-index">01 / ORIGIN</div><h2>鹡鸰在原</h2><p>白鹡鸰隶属鹡鸰科鹡鸰属。“脊令”是鹡鸰的古称，《诗经·小雅·常棣》写道：“脊令在原，兄弟急难。”诗中以鸟起兴，写兄弟在危难之际相互救助。后世沿用“鹡鸰在原”这一典故，以鹡鸰寄托手足之情，也以“鹡鸰”“脊令”等词称喻兄弟。</p><p class="culture-source">出处：<a href="https://ctext.org/book-of-poetry/chang-di/zh" target="_blank" rel="noopener noreferrer">《诗经·小雅·常棣》 ↗</a></p>`,
     `<div class="info-index">02 / LITERATURE</div><h2>文学用典</h2><p><strong>唐 · 孟浩然</strong>：“俱怀鸿鹄志，昔有鹡鸰心。”以鹡鸰心追忆兄弟情谊。</p><p><strong>宋 · 黄庭坚</strong>：“急雪脊令相并影，惊风鸿雁不成行。”借鹡鸰相依之影寄托手足之情。</p><p><strong>近现代 · 鲁迅</strong>：《彷徨·弟兄》中以“鹡鸰在原”称说兄弟间的关怀，延续古典手足情谊的意象。</p>`
   ];
-  const nav=document.createElement('nav');nav.className='reading-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','白鹡鸰说明');
+  const selectedCulture=cultureByBird[name]||culture;
+  const nav=document.createElement('nav');nav.className='reading-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label',name+'说明');
   ['行为与环境','文化意涵'].forEach((label,i)=>{
     const b=document.createElement('button');b.type='button';b.id='reading-tab-'+i;b.textContent=label;b.setAttribute('role','tab');b.setAttribute('aria-selected',String(i===0));b.tabIndex=i===0?0:-1;b.setAttribute('aria-controls','wagtail-reading');
     b.addEventListener('click',()=>select(i));
@@ -63,7 +69,7 @@ if(name==='白鹡鸰'){
   function select(i){
     // Reserve the current space so switching never moves the animation upwards.
     info.style.minHeight=info.getBoundingClientRect().height+'px';
-    blocks.forEach((el,j)=>{el.innerHTML=(i?culture:original)[j]});
+    blocks.forEach((el,j)=>{el.innerHTML=(i?selectedCulture:original)[j]});
     Array.from(nav.children).forEach((b,j)=>{b.setAttribute('aria-selected',String(i===j));b.tabIndex=i===j?0:-1});
     panel.setAttribute('aria-labelledby','reading-tab-'+i);
   }
