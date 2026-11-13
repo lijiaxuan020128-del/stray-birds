@@ -9,7 +9,17 @@
   <style>
     #heronCall{position:static;display:inline-block;vertical-align:middle;margin-left:12px;padding:5px 9px;border:1px solid rgba(244,239,220,.25);border-radius:var(--corner,0px);background:transparent;color:rgb(244,239,220);font:9px Arial,"Microsoft Yahei",sans-serif;letter-spacing:1px;opacity:.62;cursor:pointer;transform:translateY(-1px);transition:.18s ease}
     #heronCall:hover{opacity:.95;background:rgba(244,239,220,.07);border-color:rgba(244,239,220,.42)}
-  </style>
+  
+/* 段落随栏宽均衡换行，短尾至少保留四个正文字符。 */
+.species-info .info-block{min-width:0;justify-content:flex-start}
+.species-info .info-block p{max-width:100%;word-break:normal;overflow-wrap:break-word;line-break:strict;text-wrap:pretty;text-wrap:balance}
+.bird-text-tail{white-space:nowrap}
+@media(min-width:901px) and (max-width:1100px){
+ .species-info{grid-template-columns:290px minmax(0,1fr) minmax(0,1fr);gap:24px}
+ .identity-card{width:290px;padding-right:0}
+ .info-block+.info-block{padding-left:24px}
+}
+</style>
 </head>
 <body>
   <main class="species-page">
@@ -40,5 +50,44 @@
     (function loadHeronArtwork(){const output=document.getElementById('heronTrimmed');function drawTrimmed(src){const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);const d=x.getImageData(0,0,c.width,c.height).data;let minX=c.width,minY=c.height,maxX=-1,maxY=-1;for(let yy=0;yy<c.height;yy++){for(let xx=0;xx<c.width;xx++){if(d[(yy*c.width+xx)*4+3]>8){if(xx<minX)minX=xx;if(xx>maxX)maxX=xx;if(yy<minY)minY=yy;if(yy>maxY)maxY=yy}}}if(maxX<minX)return;const w=maxX-minX+1,h=maxY-minY+1;output.width=w;output.height=h;const out=output.getContext('2d',{willReadFrequently:true});out.drawImage(c,minX,minY,w,h,0,0,w,h);const td=out.getImageData(0,0,w,h).data;let weight=0,weightedX=0;for(let yy=0;yy<h;yy++){for(let xx=0;xx<w;xx++){const a=td[(yy*w+xx)*4+3]/255;if(a>0.03){weight+=a;weightedX+=xx*a}}}window.heronVisibleCenterRatio=weight?((weightedX/weight)+0.5)/w:0.5;requestAnimationFrame(()=>requestAnimationFrame(()=>window.alignHeronMapping?.()))}catch(e){console.warn('苍鹭透明区域裁切失败',e)}};img.src=src}try{if(window.parent&&window.parent!==window){const p=window.parent.document.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');if(p&&p.src){drawTrimmed(p.src);return}}}catch(e){}const frame=document.createElement('iframe');frame.src='../../?heron-art-source=1925';frame.style.cssText='position:fixed;width:1px;height:1px;left:-10000px;top:-10000px;opacity:0;pointer-events:none;border:0';document.body.appendChild(frame);frame.onload=()=>{let tries=0;const scan=()=>{tries++;try{const doc=frame.contentDocument,p=doc&&doc.querySelector('.item[aria-label="苍鹭"] img, .item[aria-label*="苍鹭"] img');if(p&&p.src){drawTrimmed(p.src);frame.remove();return}const bs=doc?Array.from(doc.querySelectorAll('#pages button')):[];if(bs.length)bs[(tries-1)%bs.length].click();if(tries<12)setTimeout(scan,180);else frame.remove()}catch(e){frame.remove()}};setTimeout(scan,350)}})();
   </script>
 <script src="../../assets/bird-calls.js?v=calls3"></script>
+
+<script>
+(() => {
+  const region = document.querySelector('.species-info');
+  if (!region) return;
+  const processed = new WeakSet();
+  function protectParagraphEnds() {
+    region.querySelectorAll('.info-block p:not(.culture-source)').forEach(p => {
+      if (processed.has(p)) return;
+      processed.add(p);
+      const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
+      const chars = [];
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        let offset = 0;
+        for (const char of node.data) {
+          chars.push({node, offset, char});
+          offset += char.length;
+        }
+      }
+      let count = 0, start = null;
+      for (let i = chars.length - 1; i >= 0; i--) {
+        if (/[\p{L}\p{N}]/u.test(chars[i].char)) count++;
+        if (count === 4) { start = chars[i]; break; }
+      }
+      if (!start || chars.length < 8) return;
+      const range = document.createRange();
+      range.setStart(start.node, start.offset);
+      range.setEnd(p, p.childNodes.length);
+      const tail = document.createElement('span');
+      tail.className = 'bird-text-tail';
+      tail.append(range.extractContents());
+      range.insertNode(tail);
+    });
+  }
+  protectParagraphEnds();
+  new MutationObserver(protectParagraphEnds).observe(region, {childList:true, subtree:true});
+})();
+</script>
 </body>
 </html>
