@@ -17,6 +17,16 @@
 .info-block .culture-source{font-size:10px;line-height:1.8;opacity:.42;margin-top:12px}
 .culture-source a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(244,239,220,.25)}
 @media(max-width:900px){.reading-tabs{justify-content:center;margin-bottom:0}.reading-tabs+.species-info{padding-top:24px}}
+
+/* 段落随栏宽均衡换行，短尾至少保留四个正文字符。 */
+.species-info .info-block{min-width:0;justify-content:flex-start}
+.species-info .info-block p{max-width:100%;word-break:normal;overflow-wrap:break-word;line-break:strict;text-wrap:pretty;text-wrap:balance}
+.bird-text-tail{white-space:nowrap}
+@media(min-width:901px) and (max-width:1100px){
+ .species-info{grid-template-columns:290px minmax(0,1fr) minmax(0,1fr);gap:24px}
+ .identity-card{width:290px;padding-right:0}
+ .info-block+.info-block{padding-left:24px}
+}
 </style>
 </head><body><main class="species-page"><header class="species-head"><div><div class="eyebrow" id="category"></div><h1><span id="cn" style="margin-left:0;font-size:31px;letter-spacing:5px;opacity:1"></span><span id="en"></span></h1></div><nav class="page-actions"><button id="back">← 返回目录</button></nav></header><section class="species-info"><div class="identity-card"><div class="mapping-row"><div class="mapping-unit"><div class="mapping-visual"><div class="bird-art-wrap"><canvas id="birdArt"></canvas></div></div><div class="mapping-cn" id="oneBird"></div><div class="mapping-en" id="oneBirdEn"></div></div><div class="mapping-unit"><div class="mapping-visual"><div class="translation-line"><span></span></div></div><div class="mapping-cn">抽象成</div><div class="mapping-en">ABSTRACTED AS</div></div><div class="mapping-unit"><div class="mapping-visual"><div class="particle-sample" id="particleSample"></div></div><div class="mapping-cn">一个粒子</div><div class="mapping-en">ONE PARTICLE</div></div></div></div><article class="info-block"><div class="info-index">01 / BEHAVIOR</div><h2>行为</h2><p id="behavior"></p></article><article class="info-block"><div class="info-index">02 / HABITAT</div><h2>环境</h2><p id="habitat"></p></article></section><section class="effect-section"><div class="effect-heading"><div><div class="effect-label">03 / OBSERVATION</div><h2 class="effect-title">效果展示</h2></div><button id="full" class="effect-fullscreen">全屏观看 ↗</button></div><section class="observation-frame"><iframe id="effect" allow="fullscreen"></iframe></section></section></main>
 <script>
@@ -68,7 +78,7 @@ if(['白鹡鸰','鸿雁','家燕','戴胜'].includes(name)){
   const panel=document.createElement('div');panel.id='wagtail-reading';panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby','reading-tab-0');panel.style.display='contents';blocks[0].before(panel);blocks.forEach(el=>panel.append(el));
   function select(i){
     // Reserve the current space so switching never moves the animation upwards.
-    info.style.minHeight=info.getBoundingClientRect().height+'px';
+    info.style.minHeight='';
     blocks.forEach((el,j)=>{el.innerHTML=(i?selectedCulture:original)[j]});
     Array.from(nav.children).forEach((b,j)=>{b.setAttribute('aria-selected',String(i===j));b.tabIndex=i===j?0:-1});
     panel.setAttribute('aria-labelledby','reading-tab-'+i);
@@ -87,6 +97,45 @@ if(!artRequested&&name==='金腰燕')crop('../red-rumped-swallow/artwork.png?v=s
 if(!artRequested&&name==='金翅雀')crop('../greenfinch/artwork.png?v=20261108-greenfinch1');
 if(!artRequested&&name==='栗鹀')crop('../bunting/artwork.png?v=20261108-complete1');
 if(!artRequested){const f=document.createElement('iframe');f.src='../../?bird-art='+encodeURIComponent(name);f.style.cssText='position:fixed;width:1px;height:1px;left:-10000px;top:-10000px;opacity:0;border:0';document.body.appendChild(f);f.onload=()=>{let n=0;const scan=()=>{n++;try{const doc=f.contentDocument,p=doc&&doc.querySelector('.item[aria-label="'+name+'"] img,.item[aria-label*="'+name+'"] img');if(p&&p.src){crop(p.src);f.remove();return}const bs=doc?Array.from(doc.querySelectorAll('#pages button')):[];if(bs.length)bs[(n-1)%bs.length].click();if(n<16)setTimeout(scan,160);else f.remove()}catch(e){f.remove()}};setTimeout(scan,300)}}
-</script><script src="../../assets/bird-calls.js?v=calls-20261110-buzzard"></script></body></html>
+</script><script src="../../assets/bird-calls.js?v=calls-20261110-buzzard"></script>
+<script>
+(() => {
+  const region = document.querySelector('.species-info');
+  if (!region) return;
+  const processed = new WeakSet();
+  function protectParagraphEnds() {
+    region.querySelectorAll('.info-block p:not(.culture-source)').forEach(p => {
+      if (processed.has(p)) return;
+      processed.add(p);
+      const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
+      const chars = [];
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        let offset = 0;
+        for (const char of node.data) {
+          chars.push({node, offset, char});
+          offset += char.length;
+        }
+      }
+      let count = 0, start = null;
+      for (let i = chars.length - 1; i >= 0; i--) {
+        if (/[\p{L}\p{N}]/u.test(chars[i].char)) count++;
+        if (count === 4) { start = chars[i]; break; }
+      }
+      if (!start || chars.length < 8) return;
+      const range = document.createRange();
+      range.setStart(start.node, start.offset);
+      range.setEnd(p, p.childNodes.length);
+      const tail = document.createElement('span');
+      tail.className = 'bird-text-tail';
+      tail.append(range.extractContents());
+      range.insertNode(tail);
+    });
+  }
+  protectParagraphEnds();
+  new MutationObserver(protectParagraphEnds).observe(region, {childList:true, subtree:true});
+})();
+</script>
+</body></html>
 
 
