@@ -18,10 +18,11 @@
 .culture-source a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(244,239,220,.25)}
 @media(max-width:900px){.reading-tabs{justify-content:center;margin-bottom:0}.reading-tabs+.species-info{padding-top:24px}}
 
-/* 段落按栏宽自然换行并两端对齐，短尾至少保留四个正文字符。 */
+/* 段落由 JS 按栏宽逐行排版：每行取统一字数、避头尾，末行至少保留四个正文字符。 */
 .species-info .info-block{min-width:0;justify-content:flex-start}
 .species-info .info-block p{max-width:100%;word-break:normal;overflow-wrap:break-word;line-break:strict;text-wrap:wrap;text-align:justify;text-align-last:auto;text-justify:inter-character}
-.bird-text-tail{white-space:nowrap}
+.species-info .info-block p .tl{display:block;text-align:justify;text-align-last:justify}
+.species-info .info-block p .tl:last-child{text-align-last:auto}
 @media(min-width:901px) and (max-width:1100px){
  .species-info{grid-template-columns:290px minmax(0,1fr) minmax(0,1fr);gap:24px}
  .identity-card{width:290px;padding-right:0}
@@ -102,38 +103,86 @@ if(!artRequested){const f=document.createElement('iframe');f.src='../../?bird-ar
 (() => {
   const region = document.querySelector('.species-info');
   if (!region) return;
-  const processed = new WeakSet();
-  function protectParagraphEnds() {
-    region.querySelectorAll('.info-block p:not(.culture-source)').forEach(p => {
-      if (processed.has(p)) return;
-      processed.add(p);
-      const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
-      const chars = [];
-      while (walker.nextNode()) {
-        const node = walker.currentNode;
-        let offset = 0;
-        for (const char of node.data) {
-          chars.push({node, offset, char});
-          offset += char.length;
-        }
-      }
-      let count = 0, start = null;
-      for (let i = chars.length - 1; i >= 0; i--) {
-        if (/[\p{L}\p{N}]/u.test(chars[i].char)) count++;
-        if (count === 4) { start = chars[i]; break; }
-      }
-      if (!start || chars.length < 8) return;
-      const range = document.createRange();
-      range.setStart(start.node, start.offset);
-      range.setEnd(p, p.childNodes.length);
-      const tail = document.createElement('span');
-      tail.className = 'bird-text-tail';
-      tail.append(range.extractContents());
-      range.insertNode(tail);
-    });
+  // 行首禁排的标点（避头）：向左并入上一单元；行尾禁排的标点（避尾）：与后字合成一单元。
+  const NO_LINE_START = new Set('。,，、；：？!！;；)）]】〉》」』”’…—·%~～℃‰.'.split(''));
+  const NO_LINE_END = new Set('(([【{〈《「『“‘'.split(''));
+  const MIN_TAIL = 4; // 末行至少保留的正文（字母/数字/汉字）字符数
+  const ctx = document.createElement('canvas').getContext('2d');
+  const cache = new Map();
+  function glyph(ch, weight, ls, font) {
+    const key = weight + font + ch;
+    let w = cache.get(key);
+    if (w === undefined) { ctx.font = weight + ' ' + font; w = ctx.measureText(ch).width + ls; cache.set(key, w); }
+    return w;
   }
-  protectParagraphEnds();
-  new MutationObserver(protectParagraphEnds).observe(region, {childList:true, subtree:true});
+  function collect(p, weight) {
+    const chars = [];
+    (function walk(node, w) {
+      node.childNodes.forEach(el => {
+        if (el.nodeType === 3) { for (const ch of el.data) chars.push({ch, weight: w}); }
+        else if (el.nodeType === 1) walk(el, getComputedStyle(el).fontWeight);
+      });
+    })(p, weight);
+    return chars;
+  }
+  function typeset(p) {
+    const cs = getComputedStyle(p), maxW = p.clientWidth;
+    if (!maxW) return;
+    const chars = collect(p, cs.fontWeight), text = chars.map(c => c.ch).join('');
+    if (!text) return;
+    const key = text + '@' + maxW;
+    if (p.dataset.tlKey === key) return;
+    const font = cs.fontSize + ' ' + cs.fontFamily, ls = parseFloat(cs.letterSpacing) || 0, units = [];
+    for (let i = 0; i < chars.length;) {
+      const u = [chars[i++]];
+      if (i < chars.length && NO_LINE_END.has(u[0].ch)) u.push(chars[i++]);
+      while (i < chars.length && NO_LINE_START.has(chars[i].ch)) u.push(chars[i++]);
+      units.push(u);
+    }
+    const widths = units.map(u => u.reduce((s, c) => s + glyph(c.ch, c.weight, ls, font), 0));
+    const lines = [];
+    let line = [], w = 0;
+    units.forEach((u, k) => {
+      if (line.length && w + widths[k] > maxW + 0.01) { lines.push(line); line = []; w = 0; }
+      line.push(...u); w += widths[k];
+    });
+    if (line.length) lines.push(line);
+    const visible = l => l.reduce((n, c) => n + (/\p{L}|\p{N}/u.test(c.ch) ? 1 : 0), 0);
+    while (lines.length > 1 && lines[lines.length - 2].length > 1 && visible(lines[lines.length - 1]) < MIN_TAIL) {
+      lines[lines.length - 1].unshift(lines[lines.length - 2].pop());
+    }
+    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    p.innerHTML = lines.map(l => {
+      let html = '<span class="tl">', run = '', bold = null;
+      const flush = () => { if (run) { html += bold ? '<strong>' + esc(run) + '</strong>' : esc(run); run = ''; } };
+      l.forEach(c => { const b = parseInt(c.weight) >= 600; if (b !== bold) { flush(); bold = b; } run += c.ch; });
+      flush();
+      return html + '</span>';
+    }).join('');
+    p.dataset.tlKey = key;
+  }
+  let timer = 0, writing = false, lastW = -1;
+  function run() {
+    timer = 0;
+    writing = true;
+    lastW = region.clientWidth;
+    try { region.querySelectorAll('.info-block p:not(.culture-source)').forEach(typeset); }
+    finally { writing = false; }
+  }
+  function schedule() {
+    if (writing) return; // 忽略自身渲染引发的变更，也避免隐藏页里链式定时器被节流。
+    run();
+    clearTimeout(timer);
+    timer = setTimeout(run, 80);
+  }
+  new MutationObserver(schedule).observe(region, {childList: true, subtree: true});
+  new ResizeObserver(schedule).observe(region);
+  window.addEventListener('resize', schedule);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) schedule(); });
+  // 后台标签里 resize/ResizeObserver 可能不触发，低频巡检栏宽兜底。
+  setInterval(() => { if (region.clientWidth !== lastW) schedule(); }, 1000);
+  if (document.fonts) document.fonts.ready.then(schedule);
+  schedule();
 })();
 </script>
 </body></html>
