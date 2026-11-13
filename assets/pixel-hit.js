@@ -1,5 +1,5 @@
-// 按像素透明度判定命中：鼠标必须落在鸟类图片的不透明内容上才能选中；
-// 透明区域自动穿透到下层元素。页码条按矩形判定。
+// 按像素透明度判定命中：重叠的鸟优先命中点中不透明像素的那只，透明区域穿透到下层；
+// 整张贴图没有不透明命中时回退按矩形命中，保证贴图留白处点击也有反应。页码条按矩形判定。
 (function(){
   'use strict';
 
@@ -57,7 +57,7 @@
     return false;
   }
 
-  function findHitAt(cx,cy){
+  function findHitAt(cx,cy,rectFallback){
     const els=[...document.querySelectorAll('#canvas .item')];
 
     // DOM 中每只鸟固定按 bird、tag 顺序生成。
@@ -78,15 +78,27 @@
       if(part==='bird'&&!alphaHit(b,r,cx,cy))continue; // 真透明 → 继续找下层鸟
       return {b,part,el};
     }
+
+    // 贴图的透明留白也算图片本身：没有更低的不透明命中时，按矩形取最上层条目，
+    // 避免“点在贴图空白处毫无反应”（重叠时仍优先命中下层可见的那只鸟）。
+    if(!rectFallback)return null;
+    for(const item of candidates){
+      const r=item.el.getBoundingClientRect();
+      if(cx<r.left||cx>r.right||cy<r.top||cy>r.bottom)continue;
+      const idx=Math.floor(item.k/2);
+      const b=page().birds[idx];
+      if(!b)continue;
+      return {b,part:item.k%2===0?'bird':'tag',el:item.el};
+    }
     return null;
   }
 
-  // 编辑：按下时始终以“实际不透明像素命中”的鸟为准。
+  // 编辑：按下时始终以“实际不透明像素命中”的鸟为准；贴图透明留白则回退到被点的那只。
   document.addEventListener('pointerdown',e=>{
     if(preview)return;
     if(e.target&&e.target.classList&&e.target.classList.contains('handle'))return;
 
-    const hit=findHitAt(e.clientX,e.clientY);
+    const hit=findHitAt(e.clientX,e.clientY,true);
     const el=e.target.closest?e.target.closest('.item'):null;
 
     if(!hit){
@@ -111,7 +123,7 @@
     if(e.detail===0)return; // Keep keyboard activation on the focused item.
     const el=e.target.closest?.('.item');
 
-    const hit=findHitAt(e.clientX,e.clientY);
+    const hit=findHitAt(e.clientX,e.clientY,true);
     if(!hit){
       e.stopPropagation();
       e.preventDefault();

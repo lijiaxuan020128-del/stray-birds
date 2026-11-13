@@ -30,7 +30,7 @@
        'assets/flock.js?v=3',
        'assets/cover-workbench.js?v=9',
        'assets/book-header.js?v=header1',
-       'assets/page-motion.js?v=clickfix1',
+       'assets/page-motion.js?v=clickfix2',
        'assets/book-audio.js?v=audio5'
      ]) {
        await new Promise((resolve, reject) => {

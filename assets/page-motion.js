@@ -20,6 +20,7 @@
   const ctx = layer.getContext('2d');
   let unlockTimer = null;
   let turning = false, generation = 0, animations = [], motes = [], flow = null, transitionPaper = null, coverEntering = false;
+  let pendingClick = null;
   let last = performance.now(), wheelSum = 0, wheelLast = 0, wheelSign = 0, quietUntil = 0;
   const originalGo = go;
   const originalRender = render;
@@ -60,6 +61,17 @@
       if (!coverEntering) api()?.resume();
     }
     coverEntering = false;
+    // 翻页期间被拦下的点击在解锁后补发一次，避免“刚翻完页点击没反应”。
+    if (pendingClick) {
+      const c = pendingClick; pendingClick = null;
+      setTimeout(() => {
+        if (turning || document.querySelector('dialog[open]')) return;
+        const target = document.elementFromPoint(c.x, c.y);
+        target?.dispatchEvent(new MouseEvent('click', {
+          clientX: c.x, clientY: c.y, bubbles: true, cancelable: true, view: window, detail: 1
+        }));
+      }, 60);
+    }
   }
   render = function () {
     if (turning) { generation++; finish(); }
@@ -175,7 +187,15 @@
   }
   cover.addEventListener('load', bindCover); bindCover();
   ['pointermove','click'].forEach(type => window.addEventListener(type, e => {
-    if (turning && e.target.closest?.('#frame') && !e.target.closest?.('.bookAudioToggle')) { e.stopImmediatePropagation(); if (type === 'click') e.preventDefault(); }
+    if (!(turning && e.target.closest?.('#frame') && !e.target.closest?.('.bookAudioToggle'))) return;
+    if (type === 'click') {
+      // 拦下点击但记住位置，翻页结束后补发，而不是让这次点击凭空消失。
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      pendingClick = { x: e.clientX, y: e.clientY };
+    } else {
+      e.stopImmediatePropagation();
+    }
   }, true));
   function tick(now) {
     const dt = Math.min(.033, (now-last)/1000); last=now;

@@ -9,7 +9,12 @@
   function startLoader(n){loader.style.display='grid';const col=colors[n]||['#d8d3c9','#8f899d'];loadPts=Array.from({length:18},(_,i)=>({x:35+(i%6)*34+Math.random()*10,y:48+((i/6)|0)*24+Math.random()*10,p:Math.random()*6.28,s:.6+Math.random()*.7}));const x=lc.getContext('2d');let t=0;cancelAnimationFrame(loadRaf);const loop=()=>{t+=.035;x.clearRect(0,0,260,150);x.fillStyle=col[0];x.strokeStyle=col[1];x.lineWidth=1.2;for(const p of loadPts){p.x+=p.s;p.y+=Math.sin(t*2+p.p)*.35;if(p.x>235)p.x=24;x.beginPath();x.arc(p.x,p.y,4.2,0,6.283);x.fill();x.stroke()}x.fillStyle='rgba(244,239,220,.7)';x.font='12px sans-serif';x.textAlign='center';x.fillText((n||'鸟类')+' · LOADING',130,128);loadRaf=requestAnimationFrame(loop)};loop()}
   function stopLoader(){loader.style.display='none';cancelAnimationFrame(loadRaf);loadRaf=0}
   function closeVisual(){panel.close();frame.src='about:blank';frame.style.visibility='hidden';stopLoader();document.documentElement.style.overflow='';document.body.style.overflow='';if(typeof window.resetCatalogParticles==='function')window.resetCatalogParticles();previousFocus?.focus()}
-  function close(){closeVisual();try{if(history.state&&history.state.effectOpen)history.back()}catch{}}
+  function close(){
+    closeVisual();
+    // 用 replaceState 把当前条目标记为已关闭，而不是 history.back()：
+    // back 是异步的，连续“关闭 A → 立刻点开 B”时迟到的 popstate 会把 B 关掉或误翻页。
+    try{if(history.state&&history.state.effectOpen)history.replaceState({effectOpen:false},'')}catch{}
+  }
   panel.addEventListener('cancel',e=>{e.preventDefault();close()});
   // 浏览器返回/前进与效果页联动：返回＝关闭效果页回到所在目录页；前进＝重新打开。
   window.addEventListener('popstate',e=>{
