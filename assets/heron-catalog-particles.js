@@ -184,7 +184,7 @@
   function move(s, p, dt) {
     // 目录页：以真实经过时间推进，移动距离恒定；转向只改变方向，不改变速率。
     const sp = 1.6 * speedMul(s);
-    const distance = sp * Math.min(dt, .033) * 60;
+    const distance = sp * dt * 60;
     if (distance <= 0 || !s.w || !s.h) return;
     const current = Math.atan2(p.vy, p.vx);
     const canMove = angle => {
@@ -237,7 +237,10 @@
         p.alpha = Math.max(0, p.alpha - dt * 1.8);
       } else {
         p.alpha = Math.max(0, Math.min(1, p.alpha + (s.hover ? dt * 5 : -dt * 5)));
-        move(s, p, dt);
+        // 帧间隔变长时分段补足实际移动距离，避免低帧率时明显减速。
+        // 每段仍按同一个固定速度移动，不改变既有转向及边界规则。
+        const steps = Math.max(1, Math.ceil(dt / (1 / 60)));
+        for (let k = 0; k < steps; k++) move(s, p, dt / steps);
       }
       if (p.alpha > 0) alive = true;
       if (p.alpha <= 0) continue;
@@ -252,9 +255,9 @@
   }
 
   function tick(now) {
-    // 只限制上限防止切走再切回时的跳变；不设下限——
-    // 高刷新率屏幕帧间隔小于 8ms，设下限会让速度按帧率放大且随帧率抖动。
-    const dt = Math.min(.033, (now - last) / 1000);
+    // 按真实帧间隔计时：不再将正常掉帧强制缩成 33ms，避免速度忽慢。
+    // 仅在页面切走等长时间暂停后限制补帧，防止一次性跨越过远。
+    const dt = Math.max(0, Math.min(.12, (now - last) / 1000));
     last = now;
     let active = false;
     items().forEach(el => {
