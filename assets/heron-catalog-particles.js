@@ -181,39 +181,9 @@
     }
   }
 
-  function move(s, p, dt) {
-    // 目录页：以真实经过时间推进，移动距离恒定；转向只改变方向，不改变速率。
-    const sp = 1.6 * speedMul(s);
-    const distance = sp * dt * 60;
-    if (distance <= 0 || !s.w || !s.h) return;
-    const current = Math.atan2(p.vy, p.vx);
-    const canMove = angle => {
-      const nx = p.x + Math.cos(angle) * distance / s.w;
-      const ny = p.y + Math.sin(angle) * distance / s.h;
-      return inside(s.m, nx, ny) ? {angle, nx, ny} : null;
-    };
-    let pick = canMove(current + p.turn * dt);
-    if (!pick) {
-      // 在鸟形边界内寻找可通行方向，避免碰壁后减速或原地停顿。
-      for (let j = 1; j <= 42 && !pick; j++) {
-        const d = j * Math.PI / 42;
-        pick = canMove(current + d) || canMove(current - d);
-      }
-    }
-    if (!pick) {
-      // 边界无法通行时原地调整朝向，不再随机传送到其他位置。
-      // 这样不会产生瞬间跨越几十像素的虚假高速。
-      const angle = current + Math.PI;
-      p.vx = Math.cos(angle) * sp;
-      p.vy = Math.sin(angle) * sp;
-      return;
-    }
-    if (pick) {
-      p.x = pick.nx; p.y = pick.ny;
-      p.vx = Math.cos(pick.angle) * sp;
-      p.vy = Math.sin(pick.angle) * sp;
-    }
-  }
+  // 目录页移动算法恢复自 2026-11-10 历史版本（8351a476）。
+  function move(s,p,dt){const sp=s.c[5],oldX=p.x,oldY=p.y,current=Math.atan2(p.vy,p.vx),step=sp*dt*60,tryAngle=a=>{const nx=p.x+Math.cos(a)*step/s.w,ny=p.y+Math.sin(a)*step/s.h;return inside(s.m,nx,ny)?{a,nx,ny}:null};let a=current+p.turn*dt,pick=tryAngle(a);if(!pick){let best=null;for(let j=1;j<=28&&!best;j++){const d=j*.075;const first=Math.random()<.5?1:-1;best=tryAngle(current+d*first)||tryAngle(current-d*first)}if(pick=best){p.turn+=(Math.random()-.5)*.04}else{for(let j=0;j<30&&!pick;j++){const q=s.P[(Math.random()*s.P.length)|0],ta=Math.atan2((q.y-p.y)*s.h,(q.x-p.x)*s.w);pick=tryAngle(ta)} }}if(pick){const desiredX=Math.cos(pick.a)*sp,desiredY=Math.sin(pick.a)*sp,k=1-Math.exp(-dt*9);p.vx+=(desiredX-p.vx)*k;p.vy+=(desiredY-p.vy)*k;const d=Math.hypot(p.vx,p.vy)||1;p.vx=p.vx/d*sp;p.vy=p.vy/d*sp;const nx=p.x+p.vx*dt*60/s.w,ny=p.y+p.vy*dt*60/s.h;if(inside(s.m,nx,ny)){p.x=nx;p.y=ny}else{p.x=pick.nx;p.y=pick.ny;p.vx=Math.cos(pick.a)*sp;p.vy=Math.sin(pick.a)*sp}}if(p.x===oldX&&p.y===oldY){const q=s.P[(Math.random()*s.P.length)|0],a2=Math.atan2((q.y-p.y)*s.h,(q.x-p.x)*s.w);p.vx=Math.cos(a2)*sp;p.vy=Math.sin(a2)*sp}}
+
 
   /* 返回 true 表示仍有可见/活动粒子；false 表示视觉已耗尽，调用方应复位该状态。 */
   function draw(s, dt) {
@@ -238,8 +208,7 @@
         p.alpha = Math.max(0, Math.min(1, p.alpha + (s.hover ? dt * 5 : -dt * 5)));
         // 帧间隔变长时分段补足实际移动距离，避免低帧率时明显减速。
         // 每段仍按同一个固定速度移动，不改变既有转向及边界规则。
-        const steps = Math.max(1, Math.ceil(dt / (1 / 60)));
-        for (let k = 0; k < steps; k++) move(s, p, dt / steps);
+        move(s, p, dt);
       }
       if (p.alpha > 0) alive = true;
       if (p.alpha <= 0) continue;
@@ -256,7 +225,7 @@
   function tick(now) {
     // 按真实帧间隔计时：不再将正常掉帧强制缩成 33ms，避免速度忽慢。
     // 仅在页面切走等长时间暂停后限制补帧，防止一次性跨越过远。
-    const dt = Math.max(0, Math.min(.12, (now - last) / 1000));
+    const dt = Math.min(.03, Math.max(.008, (now - last) / 1000));
     last = now;
     let active = false;
     items().forEach(el => {
