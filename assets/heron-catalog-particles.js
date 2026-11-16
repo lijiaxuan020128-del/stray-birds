@@ -182,7 +182,7 @@
   }
 
   function move(s, p, dt) {
-    const sp = 1.7 * speedMul(s);
+    const sp = 1.6 * speedMul(s);
     const oldX = p.x, oldY = p.y;
     const current = Math.atan2(p.vy, p.vx);
     const step = Math.min(24, sp * dt * 60);
@@ -239,7 +239,8 @@
       if (s.burst) {
         p.x += p.vx * dt * 70 * boost / r.width;
         p.y += p.vy * dt * 70 * boost / r.height;
-        p.vx *= 1.02; p.vy *= 1.02;
+        const drag = 1 + dt * 1.2;      // 按时间的向外加速，不随帧率变化
+        p.vx *= drag; p.vy *= drag;
         p.alpha = Math.max(0, p.alpha - dt * 1.8);
       } else {
         p.alpha = Math.max(0, Math.min(1, p.alpha + (s.hover ? dt * 5 : -dt * 5)));
@@ -258,7 +259,9 @@
   }
 
   function tick(now) {
-    const dt = Math.min(.03, Math.max(.008, (now - last) / 1000));
+    // 只限制上限防止切走再切回时的跳变；不设下限——
+    // 高刷新率屏幕帧间隔小于 8ms，设下限会让速度按帧率放大且随帧率抖动。
+    const dt = Math.min(.033, (now - last) / 1000);
     last = now;
     let active = false;
     items().forEach(el => {
