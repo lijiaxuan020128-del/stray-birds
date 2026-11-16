@@ -182,44 +182,37 @@
   }
 
   function move(s, p, dt) {
+    // 目录页：以真实经过时间推进，移动距离恒定；转向只改变方向，不改变速率。
     const sp = 1.6 * speedMul(s);
-    const oldX = p.x, oldY = p.y;
+    const distance = sp * Math.min(dt, .033) * 60;
+    if (distance <= 0 || !s.w || !s.h) return;
     const current = Math.atan2(p.vy, p.vx);
-    const step = Math.min(24, sp * dt * 60);
-    const tryAngle = a => {
-      const nx = p.x + Math.cos(a) * step / s.w, ny = p.y + Math.sin(a) * step / s.h;
-      return inside(s.m, nx, ny) ? { a, nx, ny } : null;
+    const canMove = angle => {
+      const nx = p.x + Math.cos(angle) * distance / s.w;
+      const ny = p.y + Math.sin(angle) * distance / s.h;
+      return inside(s.m, nx, ny) ? {angle, nx, ny} : null;
     };
-    let a = current + p.turn * dt, pick = tryAngle(a);
+    let pick = canMove(current + p.turn * dt);
     if (!pick) {
-      let best = null;
-      for (let j = 1; j <= 28 && !best; j++) {
-        const d = j * .075;
-        const first = Math.random() < .5 ? 1 : -1;
-        best = tryAngle(current + d * first) || tryAngle(current - d * first);
+      // 在鸟形边界内寻找可通行方向，避免碰壁后减速或原地停顿。
+      for (let j = 1; j <= 42 && !pick; j++) {
+        const d = j * Math.PI / 42;
+        pick = canMove(current + d) || canMove(current - d);
       }
-      if (pick = best) { p.turn += (Math.random() - .5) * .04; }
-      else {
-        for (let j = 0; j < 30 && !pick; j++) {
-          const q = s.P[(Math.random() * s.P.length) | 0];
-          const ta = Math.atan2((q.y - p.y) * s.h, (q.x - p.x) * s.w);
-          pick = tryAngle(ta);
-        }
-      }
+    }
+    if (!pick && s.P.length) {
+      // 极窄区域无法前进时重新定位，避免卡住造成的忽快忽慢。
+      const q = s.P[(Math.random() * s.P.length) | 0];
+      p.x = q.x; p.y = q.y;
+      const angle = Math.random() * Math.PI * 2;
+      p.vx = Math.cos(angle) * sp;
+      p.vy = Math.sin(angle) * sp;
+      return;
     }
     if (pick) {
-      const desiredX = Math.cos(pick.a) * sp, desiredY = Math.sin(pick.a) * sp, k = 1 - Math.exp(-dt * 9);
-      p.vx += (desiredX - p.vx) * k; p.vy += (desiredY - p.vy) * k;
-      const d = Math.hypot(p.vx, p.vy) || 1;
-      p.vx = p.vx / d * sp; p.vy = p.vy / d * sp;
-      const nx = p.x + p.vx * dt * 60 / s.w, ny = p.y + p.vy * dt * 60 / s.h;
-      if (inside(s.m, nx, ny)) { p.x = nx; p.y = ny; }
-      else { p.x = pick.nx; p.y = pick.ny; p.vx = Math.cos(pick.a) * sp; p.vy = Math.sin(pick.a) * sp; }
-    }
-    if (p.x === oldX && p.y === oldY) {
-      const q = s.P[(Math.random() * s.P.length) | 0];
-      const a2 = Math.atan2((q.y - p.y) * s.h, (q.x - p.x) * s.w);
-      p.vx = Math.cos(a2) * sp; p.vy = Math.sin(a2) * sp;
+      p.x = pick.nx; p.y = pick.ny;
+      p.vx = Math.cos(pick.angle) * sp;
+      p.vy = Math.sin(pick.angle) * sp;
     }
   }
 
