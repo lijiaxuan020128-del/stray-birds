@@ -95,12 +95,13 @@
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   function tick(now){
     const dt=Math.min((now-last)/1000,.05);last=now;
+    const anim=!reduced.matches&&!document.hidden&&document.querySelector('dialog[open]')===null;
     ctx.clearRect(0,0,1200,760);
     if(book.particles?.enabled!==false){
       const speed=book.particles?.speed??1;
       ctx.fillStyle=theme().ink;
       points.forEach(p=>{
-        if(!reduced.matches&&!document.hidden&&!document.querySelector('dialog[open]')){p.y-=p.s*dt*speed;p.x+=Math.sin(now/2600+p.phase)*8*dt*speed;}
+        if(anim){p.y-=p.s*dt*speed;p.x+=Math.sin(now/2600+p.phase)*8*dt*speed;}
         if(p.y<-4){p.y=764;p.x=Math.random()*1200;}if(p.x<-4)p.x=1204;if(p.x>1204)p.x=-4;
         ctx.globalAlpha=.17+.12*Math.sin((reduced.matches?0:now/1200)+p.phase);
         ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();

@@ -119,16 +119,24 @@
     if(!preview)return;
 
     // Decorative text/lines can cover the artwork; hit-test the whole catalog.
-    if(!e.target.closest?.('#canvas') || e.target.closest?.('button,a,input,select,textarea'))return;
+    if(e.target.closest?.('button,a,input,select,textarea,dialog'))return;
     if(e.detail===0)return; // Keep keyboard activation on the focused item.
-    const el=e.target.closest?.('.item');
+    const inCanvas=e.target.closest?.('#canvas');
 
-    const hit=findHitAt(e.clientX,e.clientY,true);
-    if(!hit){
-      e.stopPropagation();
-      e.preventDefault();
-      return;
+    let hit=null;
+    if(inCanvas){
+      hit=findHitAt(e.clientX,e.clientY,true);
+      if(!hit){
+        e.stopPropagation();
+        e.preventDefault();
+        return;
+      }
+    }else if(!e.target.closest?.('aside,.sectionNav,.nav,.top,#coverSurface,iframe,.bookAudioControls,summary,.toast,.birdBootError')){
+      // 兜底：任何透明遮罩（异常残留层、插件注入层）挡在目录上时，
+      // 仍按坐标把这次点击交给它下面真正的鸟，目录不再需要刷新才能点。
+      hit=findHitAt(e.clientX,e.clientY,false);
     }
+    if(!hit)return;
 
     e.preventDefault();
     e.stopImmediatePropagation();

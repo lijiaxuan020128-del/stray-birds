@@ -93,7 +93,8 @@
     });
   }
   function startWind(direction) {
-    const rect = frame.getBoundingClientRect();
+    refreshFrameRect();
+    const rect = frameRect;
     const snapshot = isCover() ? api()?.take() : null;
     if (snapshot) {
       motes = snapshot.points.map(p => ({
@@ -199,10 +200,13 @@
   }, true));
   function tick(now) {
     const dt = Math.min(.033, (now-last)/1000); last=now;
-    const r=frame.getBoundingClientRect(), d=Math.min(2,devicePixelRatio||1);
-    if (layer.width!==Math.round(r.width*d)||layer.height!==Math.round(r.height*d)) {layer.width=Math.round(r.width*d);layer.height=Math.round(r.height*d);}
-    ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,r.width,r.height);
-    if (preview && !document.hidden && !reduced.matches && (!isCover() || turning)) {
+    const live = preview && !document.hidden && !reduced.matches && motes.length > 0 && (!isCover() || turning);
+    if (live) {
+      // 帧循环里不再强制布局：矩形改由 resize/scroll/翻页事件刷新缓存。
+      const r = frameRect, d = Math.min(2, devicePixelRatio||1);
+      if (layer.width!==Math.round(r.width*d)||layer.height!==Math.round(r.height*d)) {layer.width=Math.round(r.width*d);layer.height=Math.round(r.height*d);}
+      ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,r.width,r.height);
+      layerDirty = true;
       const progress=flow?Math.min(1,(now-flow.start)/1160):1;
       motes.forEach((p,i)=>{
         const wind=flow?Math.sin(progress*Math.PI):0;
@@ -212,16 +216,23 @@
         p.vx+=(vx-p.vx)*blend;p.vy+=(vy-p.vy)*blend;p.x+=p.vx*dt;p.y+=p.vy*dt;
         const wanted=flow ? .65*(1-progress)+.12 : .12;
         p.alpha+=(wanted-p.alpha)*(1-Math.exp(-dt*3));
-        if(!flow){if(p.x>1.03)p.x=-.03;if(p.x<-.03)p.x=1.03;if(p.y<-.03)p.y=1.03;}
+        if(!flow){if(p.x>1.03)p.x=-.03;if(p.x<-.03)p.x=1.03;if(p.y<-.03)p.y=1.03;if(p.y>1.03)p.y=-.03;}
         p.trail.push([p.x,p.y]);if(p.trail.length>7)p.trail.shift();
         ctx.strokeStyle=p.ink;ctx.fillStyle=p.ink;ctx.lineCap='round';
         for(let j=1;j<p.trail.length;j++){const a=p.trail[j-1],b=p.trail[j];if(Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])>.2)continue;ctx.globalAlpha=p.alpha*j/p.trail.length*.5;ctx.lineWidth=Math.max(.5,p.size*j/p.trail.length);ctx.beginPath();ctx.moveTo(a[0]*r.width,a[1]*r.height);ctx.lineTo(b[0]*r.width,b[1]*r.height);ctx.stroke();}
         ctx.globalAlpha=p.alpha;ctx.beginPath();ctx.arc(p.x*r.width,p.y*r.height,Math.max(.6,p.size*(flow?1:.55)),0,Math.PI*2);ctx.fill();
       });
       if(!flow&&motes.length>24)motes=motes.slice(0,24);
+    } else if (layerDirty) {
+      // 休眠前把最后一帧擦干净，之后帧循环不再读布局、不再重画。
+      ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,layer.width,layer.height);layerDirty=false;
     }
     ctx.globalAlpha=1;requestAnimationFrame(tick);
   }
+  let frameRect = frame.getBoundingClientRect(), layerDirty = false;
+  const refreshFrameRect = () => { frameRect = frame.getBoundingClientRect(); };
+  window.addEventListener('resize', refreshFrameRect, {passive:true});
+  window.addEventListener('scroll', refreshFrameRect, {passive:true});
   reduced.addEventListener('change',()=>{if(turning){generation++;finish();}motes=[];});
-  syncSurface();requestAnimationFrame(tick);
+  syncSurface();refreshFrameRect();requestAnimationFrame(tick);
 })();
