@@ -90,8 +90,13 @@
     return { x: q.x, y: q.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, alpha: 0, i, turn: (Math.random() - .5) * .18 };
   }
 
-  /* 大图粒子整体提速：速度随条目尺寸放大（700px 大图约为小图的 2 倍速）。 */
-  const speedMul = s => 1.25 + Math.min(1.25, Math.max(s.w, s.h) / 520);
+  /* 粒子速度只看同一页内的相对大小：本页最大的鸟为基准速度，越小的鸟
+     稍快一点（最多 +25%），不采用绝对像素——跨页的大小对比没有意义。
+     每个粒子的瞬时速率在 move() 中每帧都归一化，全程恒定。 */
+  function speedMul(s) {
+    const rel = Math.min(1, s.rel || 1);
+    return 1 + (1 - rel) * 0.25;
+  }
 
   function setCursor(on) {
     cursorHits = on ? cursorHits + 1 : 0;
@@ -129,12 +134,19 @@
       if (again) return again;
       if (!c || !m || !preview || !el.isConnected) { pending.delete(el); return null; }
       const r = el.getBoundingClientRect(), P = pool(m), n = count(el, m, c);
+      // 本页所有鸟里的最大尺寸作为速度基准：粒子速度只反映同页内的相对大小。
+      let pageMax = 1;
+      items().forEach(other => {
+        const b = other.getBoundingClientRect();
+        pageMax = Math.max(pageMax, b.width, b.height);
+      });
       const cv = document.createElement('canvas');
       cv.className = 'catalogParticleLayer';
       cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3';
       el.append(cv);
       im.style.transition = 'opacity .28s ease';
-      s = { el, im, cv, m, c, P, w: r.width, h: r.height, hover: false, burst: false, rev: 0, onRaf: 0, p: [] };
+      s = { el, im, cv, m, c, P, w: r.width, h: r.height, hover: false, burst: false, rev: 0, onRaf: 0,
+            rel: Math.max(r.width, r.height) / pageMax, p: [] };
       s.p = spread(P, n, r.width, r.height).map((q, i) => particle(q, s, i));
       states.set(el, s);
       if (!raf) raf = requestAnimationFrame(tick);
@@ -170,10 +182,10 @@
   }
 
   function move(s, p, dt) {
-    const sp = s.c[5] * speedMul(s);
+    const sp = 1.7 * speedMul(s);
     const oldX = p.x, oldY = p.y;
     const current = Math.atan2(p.vy, p.vx);
-    const step = Math.min(18, sp * dt * 60);
+    const step = Math.min(24, sp * dt * 60);
     const tryAngle = a => {
       const nx = p.x + Math.cos(a) * step / s.w, ny = p.y + Math.sin(a) * step / s.h;
       return inside(s.m, nx, ny) ? { a, nx, ny } : null;
@@ -221,7 +233,8 @@
     x.setTransform(dpr, 0, 0, dpr, 0, 0);
     x.clearRect(0, 0, r.width, r.height);
     let alive = s.hover;
-    const boost = 1.35 + Math.min(1.3, Math.max(r.width, r.height) / 420);
+    // 爆散速度同样只随同页相对大小微调，不随绝对像素变化。
+    const boost = Math.min(1.45, Math.max(1.15, 1.25 + (1 - Math.min(1, s.rel || 1)) * 0.2));
     for (const p of s.p) {
       if (s.burst) {
         p.x += p.vx * dt * 70 * boost / r.width;
