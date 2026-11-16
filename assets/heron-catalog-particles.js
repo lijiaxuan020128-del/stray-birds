@@ -200,11 +200,10 @@
         pick = canMove(current + d) || canMove(current - d);
       }
     }
-    if (!pick && s.P.length) {
-      // 极窄区域无法前进时重新定位，避免卡住造成的忽快忽慢。
-      const q = s.P[(Math.random() * s.P.length) | 0];
-      p.x = q.x; p.y = q.y;
-      const angle = Math.random() * Math.PI * 2;
+    if (!pick) {
+      // 边界无法通行时原地调整朝向，不再随机传送到其他位置。
+      // 这样不会产生瞬间跨越几十像素的虚假高速。
+      const angle = current + Math.PI;
       p.vx = Math.cos(angle) * sp;
       p.vy = Math.sin(angle) * sp;
       return;
