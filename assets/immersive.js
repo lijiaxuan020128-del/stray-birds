@@ -45,7 +45,7 @@
   window.addEventListener('resize',()=>{try{if(frame.contentDocument)align(frame.contentDocument)}catch{}});window.addEventListener('message',e=>{if(e.source!==frame.contentWindow)return;if(e.data?.type==='stray-birds-close')close();if(e.data?.type==='stray-birds-fullscreen'){try{const p=panel.requestFullscreen();p&&p.catch&&p.catch(()=>{})}catch{}}});
   function open(url,n){if(panel.open)return;const target=new URL(url,location.href);if(!['http:','https:'].includes(target.protocol)){toast('效果链接格式不正确');return}if(n==='白鹡鸰'){const fresh=new URL('birds/view/',location.href);target.pathname=fresh.pathname;target.searchParams.set('bird','白鹡鸰');target.searchParams.set('v','culture4');}previousFocus=document.activeElement;frame.dataset.bird=n||'';frame.style.visibility='hidden';startLoader(n);window.bookAudio?.startBirdEntrySound?.();frame.src=target.href;panel.showModal();try{history.pushState({effectOpen:true,effectUrl:target.href},'')}catch{}}
   function builtIn(n){const x=pages.find(([k])=>n.includes(k));return x?x[1]:''}const originalActivate=activate;activate=function(b,part){if(!preview)return originalActivate(b,part);const u=builtIn(b.name);if(u)return open(u,b.name);if(b.url)return open(b.url,b.name);toast('这只鸟的效果链接还没有填写')};
-  const s=document.createElement('script');s.src='assets/heron-catalog-particles.js?v=swallow4';document.head.append(s);
+  const s=document.createElement('script');s.src='assets/heron-catalog-particles.js?v=steadyspeed4';document.head.append(s);
 })();
 
 
