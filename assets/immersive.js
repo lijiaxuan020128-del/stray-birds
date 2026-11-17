@@ -15,6 +15,8 @@
     // back 是异步的，连续“关闭 A → 立刻点开 B”时迟到的 popstate 会把 B 关掉或误翻页。
     try{if(history.state&&history.state.effectOpen)history.replaceState({effectOpen:false},'')}catch{}
   }
+  // 供目录待机逻辑在鼠标静止超时后连同效果页一起关闭。
+  window.closeSpeciesVisual=close;
   panel.addEventListener('cancel',e=>{e.preventDefault();close()});
   // 浏览器返回/前进与效果页联动：返回＝关闭效果页回到所在目录页；前进＝重新打开。
   window.addEventListener('popstate',e=>{

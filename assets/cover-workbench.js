@@ -32,6 +32,20 @@ if(window.READ_MODE){
     if(target!==pi){popRestore=true;go(target);}
   });
 }
+// 读者模式：鼠标静止 3 分钟且当前不在封面时，自动回到封面（展示待机）。
+if(window.READ_MODE){
+  const IDLE_RETURN_MS=180000;let idleTimer=0;
+  const fireIdleReturn=()=>{
+    if(document.querySelector('dialog[open]'))window.closeSpeciesVisual?.();
+    if(pi===0)return;
+    if(document.body.classList.contains('windTurning')){idleTimer=setTimeout(fireIdleReturn,3000);return;}
+    go(0);
+  };
+  const armIdleReturn=()=>{clearTimeout(idleTimer);idleTimer=setTimeout(fireIdleReturn,IDLE_RETURN_MS)};
+  for(const ev of ['pointermove','pointerdown','wheel','keydown','scroll','touchstart'])window.addEventListener(ev,armIdleReturn,{passive:true});
+  const idleGo=go;go=function(i){armIdleReturn();idleGo(i);};
+  armIdleReturn();
+}
 document.querySelector('#mode').onclick=()=>{preview=!preview;if(preview){pi=0;selected=null;}document.body.classList.toggle('preview',preview);render();};
 const oldUp=document.querySelector('#pageUp').onclick;document.querySelector('#pageUp').onclick=()=>{if(pi>1)oldUp();};
 const oldDelete=document.querySelector('#deletePage').onclick;document.querySelector('#deletePage').onclick=()=>{if(!isCover()&&book.pages.length>2)oldDelete();};
