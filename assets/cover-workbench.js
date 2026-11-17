@@ -36,7 +36,21 @@ if(window.READ_MODE){
 if(window.READ_MODE){
   const IDLE_RETURN_MS=180000;let idleTimer=0;
   const fireIdleReturn=()=>{
-    if(document.querySelector('dialog[open]'))window.closeSpeciesVisual?.();
+    const dialog=document.querySelector('dialog[open]');
+    if(dialog&&pi!==0){
+      // 效果页全屏盖住全书：先在背后直接翻回封面，等翻页越过目录页后再关效果页，
+      // 这样画面从效果页直接切到封面，不会先露出目录页。兜底 5 秒防动画异常卡死。
+      go(0);
+      const started=Date.now();
+      const revealWhenSwapped=()=>{
+        if(pi!==0&&Date.now()-started<5000){setTimeout(revealWhenSwapped,80);return;}
+        if(pi!==0)go(0);
+        setTimeout(()=>window.closeSpeciesVisual?.(),pi===0?300:0);
+      };
+      revealWhenSwapped();
+      return;
+    }
+    if(dialog)window.closeSpeciesVisual?.();
     if(pi===0)return;
     if(document.body.classList.contains('windTurning')){idleTimer=setTimeout(fireIdleReturn,3000);return;}
     go(0);

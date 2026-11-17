@@ -28,7 +28,7 @@
    try {
      for (const path of [
        'assets/flock.js?v=3',
-       'assets/cover-workbench.js?v=idle3min1',
+       'assets/cover-workbench.js?v=idle3min2',
        'assets/book-header.js?v=header1',
        'assets/page-motion.js?v=clickfix3',
        'assets/book-audio.js?v=audio5'
