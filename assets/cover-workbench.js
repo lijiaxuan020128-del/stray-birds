@@ -56,7 +56,32 @@ if(window.READ_MODE){
     go(0);
   };
   const armIdleReturn=()=>{clearTimeout(idleTimer);idleTimer=setTimeout(fireIdleReturn,IDLE_RETURN_MS)};
-  for(const ev of ['pointermove','pointerdown','wheel','keydown','scroll','touchstart'])window.addEventListener(ev,armIdleReturn,{passive:true});
+  const watchedDocs = new WeakSet();
+  function watchFrame(frame) {
+    const doc = frame.contentDocument;
+    if (!doc || watchedDocs.has(doc)) return;
+    watchedDocs.add(doc);
+    doc.addEventListener('pointermove', event => {
+      if (event.pointerType === 'mouse') armIdleReturn();
+    }, {capture:true, passive:true});
+    doc.addEventListener('load', event => {
+      if (event.target.tagName === 'IFRAME') watchFrame(event.target);
+    }, true);
+    doc.querySelectorAll('iframe').forEach(watchFrame);
+  }
+  document.addEventListener('load', event => {
+    if (event.target.tagName === 'IFRAME' && event.target.closest('dialog')) watchFrame(event.target);
+  }, true);
+  const dialog = document.querySelector('dialog');
+  if (dialog) {
+    dialog.querySelectorAll('iframe').forEach(watchFrame);
+    new MutationObserver(armIdleReturn).observe(dialog, {attributes:true, attributeFilter:['open']});
+  }
+  for(const ev of ['pointermove','pointerdown','wheel','keydown','scroll','touchstart']){
+    window.addEventListener(ev, event => {
+      if (!document.querySelector('dialog[open]') || (ev === 'pointermove' && event.pointerType === 'mouse')) armIdleReturn();
+    }, {passive:true});
+  }
   const idleGo=go;go=function(i){armIdleReturn();idleGo(i);};
   armIdleReturn();
 }
